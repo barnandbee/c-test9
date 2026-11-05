@@ -1,8 +1,14 @@
-# Daily Venn (prototype)
+# On The Venns (prototype)
+
+Made by Bass Moultapps.
 
 A daily Venn diagram puzzle. Two circles overlap; the overlap names the connection
-and a clue (usually a number) sits above each blank. Players get 5 guesses to fill
-both circles. Answers stay in place once found.
+and a clue (usually a number) sits above each blank. Players get 5 turns. Each turn
+they guess every circle that's still blank, and each guess gets a coloured dot:
+
+- green: right answer in the right circle (it stays in place)
+- blue: right answer, but it belongs in the other circle
+- red: not an answer
 
 Plain HTML, CSS and JavaScript. No build step.
 

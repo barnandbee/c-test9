@@ -23,7 +23,8 @@
 // Other fields
 //   type:        "classic" | "reverse" | "mega" (only changes the label)
 //   circles:     2 or 3 entries; `label` is optional text beside each circle
-//   maxGuesses:  defaults to 5
+//   maxGuesses:  number of turns, defaults to 5. Each turn the player
+//                guesses every circle that's still blank
 //   suggest:     "countries" turns on country autocomplete, and a guess that
 //                isn't a country doesn't use up a turn
 //   instruction: one line shown above the diagram
@@ -33,7 +34,8 @@
 // =====================================================================
 
 window.VENN_SITE = {
-  name: "Daily Venn",
+  name: "On The Venns",
+  maker: { name: "Bass Moultapps", logo: "img/bass-moultapps.jpg" },
   // Set these later. Nothing is shown while they're empty.
   kofiUrl: "",
   footerSponsor: null // e.g. { name: "Some Charity", url: "https://..." }

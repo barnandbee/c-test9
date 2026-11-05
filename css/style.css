@@ -9,6 +9,7 @@
   --c2: #e2b23c;
   --good: #3c9a5f;
   --bad: #cf4d3f;
+  --near: #3d6fc4;
   --circle-opacity: 0.32;
   --blend: multiply;
   --radius: 14px;
@@ -179,7 +180,22 @@ main {
   80% { transform: translateX(4px); }
 }
 
-/* Guess dots */
+/* Result dots (green / blue / red) */
+.dot {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px dashed var(--muted);
+  flex: none;
+  opacity: 0.6;
+}
+.dot.green, .dot.blue, .dot.red { border-style: solid; opacity: 1; }
+.dot.green { background: var(--good); border-color: var(--good); }
+.dot.blue { background: var(--near); border-color: var(--near); }
+.dot.red { background: var(--bad); border-color: var(--bad); }
+.region .dot { width: clamp(10px, 3.2cqw, 16px); height: clamp(10px, 3.2cqw, 16px); margin-top: 0.4cqw; }
+
+/* Turn counter */
 .guess-dots {
   display: flex;
   justify-content: center;
@@ -187,28 +203,41 @@ main {
   margin: 10px 0 12px;
 }
 .guess-dots span {
-  width: 14px; height: 14px;
+  width: 12px; height: 12px;
   border-radius: 50%;
   border: 2px solid var(--muted);
 }
-.guess-dots span.hit { background: var(--good); border-color: var(--good); }
-.guess-dots span.miss { background: var(--bad); border-color: var(--bad); }
+.guess-dots span.used { background: var(--muted); }
 
 /* Form */
-.guess-form { display: flex; gap: 8px; }
+.guess-form { display: flex; flex-direction: column; gap: 8px; }
 .guess-form.shake { animation: shake 0.4s; }
-.guess-form input {
+.guess-rows { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.grow { display: contents; }
+.grow .tag {
+  flex: none;
+  min-width: 44px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.grow input, .grow .locked {
   flex: 1;
   min-width: 0;
   font: inherit;
   font-size: 1.05rem;
-  padding: 12px 14px;
+  padding: 11px 14px;
   border: 2px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
 }
-.guess-form input:focus { outline: none; border-color: var(--c1); }
+.grow .locked { font-weight: 800; border-color: transparent; background: none; padding-left: 4px; }
+.grow input:focus { outline: none; border-color: var(--c1); }
 .guess-form button, .primary, .result-btn, .backup-row button {
   border: none;
   border-radius: var(--radius);
@@ -217,26 +246,37 @@ main {
   background: var(--ink);
   color: var(--bg);
 }
-.guess-form button:disabled, .guess-form input:disabled { opacity: 0.45; cursor: default; }
+.guess-form button { margin-top: 2px; }
+.guess-form button:disabled { opacity: 0.45; cursor: default; }
 
-.guess-list {
+/* Turn history */
+.turns {
   list-style: none;
   padding: 0;
   margin: 14px 0 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
-  justify-content: center;
 }
-.guess-list li {
+.turns li { display: flex; gap: 6px; }
+.chip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.9rem;
   background: var(--surface);
   border: 1px solid var(--line);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.guess-list li.hit { border-color: var(--good); color: var(--good); font-weight: 700; }
-.guess-list li.miss { text-decoration: line-through; color: var(--muted); }
+.chip .dot { width: 10px; height: 10px; }
+.chip.empty { background: none; border-style: dashed; }
+.chip.red { color: var(--muted); }
 
 .result-btn { display: block; margin: 16px auto 0; }
 
@@ -304,6 +344,23 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
 .ex-hint { font-size: 9px; font-weight: 700; fill: var(--muted) !important; }
 .ex-ans { font-size: 13px; font-weight: 800; }
 .ex-mid { font-size: 8px; font-weight: 700; }
+.ex-dot.green { fill: var(--good); }
+.help-example .caption { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 0; }
+.legend { list-style: none; padding: 0; margin: 8px 0 12px; }
+.legend li { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.maker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.maker img { border-radius: 50%; flex: none; }
+.made-by { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; }
+.made-by img { border-radius: 50%; }
+.foot > * + * { margin-top: 8px; }
+.sep { border: none; border-top: 1px solid var(--line); margin: 18px 0 14px; }
 
 .result-head { text-align: center; margin-bottom: 14px; }
 .result-head .big { font-size: 1.6rem; font-weight: 800; margin: 2px 0; }

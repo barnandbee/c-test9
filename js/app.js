@@ -2,11 +2,12 @@
   "use strict";
 
   var SITE = window.VENN_SITE || {};
+  var NAME = SITE.name || "On The Venns";
   var PUZZLES = (window.VENN_PUZZLES || []).slice().sort(function (a, b) {
     return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
   });
   var SAMPLES = window.VENN_SAMPLES || {};
-  var STORE_KEY = "dailyvenn.v1";
+  var STORE_KEY = "dailyvenn.v1"; // kept from the first prototype so existing streaks carry over
 
   // ---------- helpers ----------
   function $(id) { return document.getElementById(id); }
@@ -80,7 +81,7 @@
     return;
   }
 
-  var maxGuesses = puzzle.maxGuesses || 5;
+  var maxTurns = puzzle.maxGuesses || 5;
   var nCircles = puzzle.circles && puzzle.circles.length === 3 ? 3 : 2;
   var useCountries = puzzle.suggest === "countries";
 
@@ -110,6 +111,31 @@
       });
     }
     return false;
+  }
+
+  // green: right answer in this circle; blue: belongs in another circle; red: neither
+  function judge(slot, text) {
+    if (matches(slot, text)) return "green";
+    if (slots.some(function (o) { return o.id !== slot.id && matches(o, text); })) return "blue";
+    return "red";
+  }
+
+  // What to call each circle/region, and which circle colours it sits in.
+  var POS_NAMES = {
+    2: { A: "Left circle", B: "Right circle", AB: "Middle" },
+    3: { A: "Top circle", B: "Bottom left", C: "Bottom right", AB: "Top-left overlap", AC: "Top-right overlap", BC: "Bottom overlap", ABC: "Centre" }
+  };
+  function slotName(id) {
+    var labels = (puzzle.circles || []).map(function (c) { return c && c.label; });
+    if (nCircles === 3 && labels.every(Boolean)) {
+      var parts = id.split("").map(function (l) { return labels["ABC".indexOf(l)]; });
+      return parts.length === 1 ? parts[0] + " only" : parts.join(" + ");
+    }
+    return POS_NAMES[nCircles][id] || id;
+  }
+  function slotSwatch(id) {
+    var cols = id.split("").map(function (l) { return "var(--c" + "ABC".indexOf(l) + ")"; });
+    return cols.length === 1 ? cols[0] : "linear-gradient(90deg," + cols.join(",") + ")";
   }
 
   // ---------- storage ----------
@@ -154,7 +180,11 @@
     }
   }
 
-  var game = (!preview && store.games[puzzle.date]) || { guesses: [], solved: [], status: "playing" };
+  var game = (!preview && store.games[puzzle.date]) || { turns: [], solved: [], status: "playing" };
+  if (!game.turns) { // saved by the first prototype (one guess per turn)
+    game.turns = [];
+    delete game.guesses;
+  }
   if (!preview) store.games[puzzle.date] = game;
 
   // ---------- layouts ----------
@@ -186,11 +216,21 @@
   };
 
   // ---------- rendering ----------
-  var lastSolved = null;
+  var justSolved = [];
+
+  function isSolved(id) { return game.solved.indexOf(id) >= 0; }
+
+  function lastResult(id) {
+    if (isSolved(id)) return "green";
+    for (var i = game.turns.length - 1; i >= 0; i--) {
+      if (game.turns[i][id]) return game.turns[i][id].result;
+    }
+    return "";
+  }
 
   function renderMeta() {
-    $("siteName").textContent = SITE.name || "Daily Venn";
-    document.title = SITE.name || "Daily Venn";
+    $("siteName").textContent = NAME;
+    document.title = NAME;
     var type = puzzle.type || "classic";
     var num = index >= 0 ? "#" + (index + 1) : "Sample";
     var dateTxt = "";
@@ -207,8 +247,6 @@
       $("suggestions").innerHTML = (window.VENN_COUNTRIES || []).map(function (c) {
         return '<option value="' + esc(c) + '">';
       }).join("");
-    } else {
-      $("guessInput").removeAttribute("list");
     }
 
     var sp = puzzle.sponsor;
@@ -224,13 +262,17 @@
       var fs = SITE.footerSponsor;
       foot.push("<div>Supported by " + (fs.url ? '<a href="' + esc(fs.url) + '" target="_blank" rel="noopener">' + esc(fs.name) + "</a>" : esc(fs.name)) + "</div>");
     }
+    if (SITE.maker && SITE.maker.name) {
+      foot.push('<div class="made-by">' +
+        (SITE.maker.logo ? '<img src="' + esc(SITE.maker.logo) + '" alt="" width="32" height="32">' : "") +
+        "Made by " + esc(SITE.maker.name) + "</div>");
+    }
     $("footer").innerHTML = foot.join("");
     $("footer").hidden = !foot.length;
   }
 
   function renderBoard() {
     var L = LAYOUTS[nCircles];
-    var board = $("board");
     var svg = '<svg viewBox="0 0 ' + L.w + " " + L.h + '" role="img" aria-label="Venn diagram">';
     L.circles.forEach(function (c, i) {
       svg += '<circle class="c c' + i + '" cx="' + c.cx + '" cy="' + c.cy + '" r="' + c.r + '"/>';
@@ -248,14 +290,16 @@
       var r = puzzle.regions[key];
       var pos = L.regions[key];
       if (!pos) return;
-      var style = 'left:' + (pos.x / L.w * 100) + '%;top:' + (pos.y / L.h * 100) + '%;width:' + (pos.w / L.w * 100) + '%';
+      var style = "left:" + (pos.x / L.w * 100) + "%;top:" + (pos.y / L.h * 100) + "%;width:" + (pos.w / L.w * 100) + "%";
       if (r.slot) {
-        var solved = game.solved.indexOf(key) >= 0;
-        var cls = "region slot" + (solved ? " solved" : over ? " missed" : "") + (solved && lastSolved === key ? " flash" : "");
+        var solved = isSolved(key);
+        var res = lastResult(key);
+        var cls = "region slot" + (solved ? " solved" : over ? " missed" : "") + (justSolved.indexOf(key) >= 0 ? " flash" : "");
         var ans = solved || over ? esc(r.slot.answer) : '<span class="blank">?</span>';
-        html += '<div class="' + cls + '" style="' + style + '" data-region="' + key + '">' +
+        html += '<div class="' + cls + '" style="' + style + '">' +
           (r.slot.hint ? '<div class="hint">' + esc(r.slot.hint) + "</div>" : "") +
-          '<div class="answer">' + ans + "</div></div>";
+          '<div class="answer">' + ans + "</div>" +
+          '<span class="dot ' + res + '" title="' + esc(resultText(res)) + '"></span></div>';
       } else {
         var isAnswer = !!r.hint || (nCircles === 2 && key !== "AB");
         html += '<div class="region' + (isAnswer ? " text-answer" : "") + '" style="' + style + '">' +
@@ -263,70 +307,108 @@
           '<div class="fixed">' + esc(r.text) + "</div></div>";
       }
     });
-    board.innerHTML = html;
-    board.classList.toggle("small", nCircles === 3);
+    $("board").innerHTML = html;
+    $("board").classList.toggle("small", nCircles === 3);
   }
 
-  function renderGuesses() {
-    var dots = "";
-    for (var i = 0; i < maxGuesses; i++) {
-      var g = game.guesses[i];
-      dots += "<span class=\"" + (g ? (g.hit ? "hit" : "miss") : "") + "\"></span>";
-    }
-    $("guessDots").innerHTML = dots;
-    $("guessDots").setAttribute("aria-label", game.guesses.length + " of " + maxGuesses + " guesses used");
+  function resultText(res) {
+    return { green: "Right answer, right circle", blue: "Right answer, wrong circle", red: "Not an answer today" }[res] || "Not guessed yet";
+  }
 
-    $("guessList").innerHTML = game.guesses.map(function (g) {
-      return '<li class="' + (g.hit ? "hit" : "miss") + '">' + (g.hit ? "&#10003; " : "") + esc(g.text) + "</li>";
+  function renderInputs() {
+    var over = game.status !== "playing";
+    $("guessRows").innerHTML = slots.map(function (s) {
+      var solved = isSolved(s.id);
+      var res = lastResult(s.id);
+      var field = solved || over
+        ? '<div class="locked">' + (solved ? esc(s.answer) : "&nbsp;") + "</div>"
+        : '<input id="g-' + s.id + '" data-slot="' + s.id + '" type="text" placeholder="' + esc(slotName(s.id)) + '"' +
+          ' aria-label="Guess for ' + esc(slotName(s.id)) + (s.hint ? ", clue " + esc(s.hint) : "") + '"' +
+          (useCountries ? ' list="suggestions"' : "") + ' autocapitalize="words" spellcheck="false" enterkeyhint="next">';
+      return '<div class="grow' + (solved ? " solved" : "") + '">' +
+        '<span class="tag" style="background:' + slotSwatch(s.id) + '" title="' + esc(slotName(s.id)) + '">' + esc(s.hint || "") + "</span>" +
+        field +
+        '<span class="dot ' + res + '" title="' + esc(resultText(res)) + '"></span></div>';
     }).join("");
 
-    var over = game.status !== "playing";
-    $("guessInput").disabled = over;
+    var open = slots.filter(function (s) { return !isSolved(s.id); }).length;
+    var left = maxTurns - game.turns.length;
     $("guessBtn").disabled = over;
-    $("guessInput").placeholder = over ? (game.status === "won" ? "Solved!" : "Out of guesses") :
-      (maxGuesses - game.guesses.length) + " guess" + (maxGuesses - game.guesses.length === 1 ? "" : "es") + " left";
-    $("resultBtn").hidden = !over;
+    $("guessBtn").textContent = over ? (game.status === "won" ? "Solved!" : "Out of turns") :
+      (open > 2 ? "Guess all" : open === 2 ? "Guess both" : "Guess") + " · " + left + " turn" + (left === 1 ? "" : "s") + " left";
+    var last = $("guessRows").querySelectorAll("input");
+    if (last.length) last[last.length - 1].setAttribute("enterkeyhint", "go");
+  }
+
+  function renderTurns() {
+    var dots = "";
+    for (var i = 0; i < maxTurns; i++) dots += '<span class="' + (game.turns[i] ? "used" : "") + '"></span>';
+    $("guessDots").innerHTML = dots;
+    $("guessDots").setAttribute("aria-label", game.turns.length + " of " + maxTurns + " turns used");
+
+    $("turnList").innerHTML = game.turns.map(function (t) {
+      return "<li>" + slots.map(function (s) {
+        var e = t[s.id];
+        if (!e) return '<span class="chip empty"></span>';
+        return '<span class="chip ' + e.result + '" title="' + esc(resultText(e.result)) + '"><span class="dot ' + e.result + '"></span>' + esc(e.text) + "</span>";
+      }).join("") + "</li>";
+    }).join("");
+    $("resultBtn").hidden = game.status === "playing";
   }
 
   function render() {
     renderBoard();
-    renderGuesses();
+    renderInputs();
+    renderTurns();
   }
 
   // ---------- playing ----------
-  function submitGuess(raw) {
+  function inputFor(id) { return $("g-" + id); }
+
+  function reject(input, msg) {
+    shake();
+    toast(msg);
+    if (input) { input.focus(); input.select(); }
+  }
+
+  function submitTurn() {
     if (game.status !== "playing") return;
-    var text = raw.trim();
-    var g = canon(text);
-    if (!g) return;
+    var open = slots.filter(function (s) { return !isSolved(s.id); });
+    var entries = open.map(function (s) { return { slot: s, input: inputFor(s.id), text: inputFor(s.id).value.trim() }; });
 
-    if (game.guesses.some(function (x) { return canon(x.text) === g; })) {
-      shake(); toast("You've already guessed that"); return;
-    }
-    if (useCountries && puzzle.strict !== false && !COUNTRY_CANON[norm(text)]) {
-      shake(); toast("That's not on the country list"); return;
-    }
-    var already = slots.filter(function (s) { return game.solved.indexOf(s.id) >= 0 && matches(s, text); });
-    if (already.length) { toast("Already found"); return; }
+    var empty = entries.filter(function (e) { return !canon(e.text); })[0];
+    if (empty) return reject(empty.input, open.length > 1 ? "Make a guess for every circle" : "Type a guess");
 
-    var hit = slots.find(function (s) { return game.solved.indexOf(s.id) < 0 && matches(s, text); });
-    game.guesses.push({ text: text, hit: hit ? hit.id : null });
-    lastSolved = null;
-    if (hit) {
-      game.solved.push(hit.id);
-      lastSolved = hit.id;
-    } else {
-      shake();
+    if (useCountries && puzzle.strict !== false) {
+      var bad = entries.filter(function (e) { return !COUNTRY_CANON[norm(e.text)]; })[0];
+      if (bad) return reject(bad.input, "“" + bad.text + "” isn't on the country list");
     }
 
+    var repeat = entries.filter(function (e) {
+      return game.turns.some(function (t) { return t[e.slot.id] && canon(t[e.slot.id].text) === canon(e.text); });
+    })[0];
+    if (repeat) return reject(repeat.input, "You've already tried " + repeat.text + " there");
+
+    var turn = {};
+    justSolved = [];
+    entries.forEach(function (e) {
+      var res = judge(e.slot, e.text);
+      turn[e.slot.id] = { text: e.text, result: res };
+      if (res === "green") { game.solved.push(e.slot.id); justSolved.push(e.slot.id); }
+    });
+    game.turns.push(turn);
+
+    var anyBlue = entries.some(function (e) { return turn[e.slot.id].result === "blue"; });
     if (game.solved.length === slots.length) finish("won");
-    else if (game.guesses.length >= maxGuesses) finish("lost");
-    else if (hit) toast(["Nice!", "Got it!", "Correct!"][game.guesses.length % 3], 1200);
-    else toast("Not this time", 1200);
+    else if (game.turns.length >= maxTurns) finish("lost");
+    else if (justSolved.length) toast(justSolved.length > 1 ? "Two in one!" : "Got one!", 1300);
+    else if (anyBlue) toast("Right answer, wrong circle", 1500);
+    else { shake(); toast("Not this time", 1300); }
 
     save();
     render();
-    $("guessInput").value = "";
+    var first = $("guessRows").querySelector("input");
+    if (first) first.focus();
   }
 
   function shake() {
@@ -353,32 +435,36 @@
         st.streak = 0;
       }
     }
-    setTimeout(function () { openStats(true); }, status === "won" ? 1100 : 1400);
+    setTimeout(function () { openStats(); }, status === "won" ? 1100 : 1400);
   }
 
   // ---------- result / stats ----------
+  var EMOJI = { green: "🟢", blue: "🔵", red: "🔴" };
+
   function shareText() {
     var num = index >= 0 ? "#" + (index + 1) : "(sample)";
-    var score = game.status === "won" ? game.guesses.length + "/" + maxGuesses : "X/" + maxGuesses;
-    var squares = game.guesses.map(function (g) { return g.hit ? "🟢" : "⚪"; }).join("");
-    return (SITE.name || "Daily Venn") + " " + num + " " + score + "\n" + squares + "\n" + location.origin + location.pathname;
+    var score = game.status === "won" ? game.turns.length + "/" + maxTurns : "X/" + maxTurns;
+    var rows = game.turns.map(function (t) {
+      return slots.map(function (s) { return t[s.id] ? EMOJI[t[s.id].result] : "⬜"; }).join("");
+    }).join("\n");
+    return NAME + " " + num + " " + score + "\n" + rows + "\n" + location.origin + location.pathname;
   }
 
-  function openStats(fromFinish) {
+  function openStats() {
     var rb = $("resultBlock");
     if (game.status !== "playing") {
       var won = game.status === "won";
       var answers = slots.map(function (s) { return esc(s.answer); }).join(" &middot; ");
       var h = '<div class="result-head">' +
         "<div>" + (won ? "Solved" : "Better luck tomorrow") + "</div>" +
-        '<div class="big">' + (won ? game.guesses.length + " / " + maxGuesses + " guesses" : "Out of guesses") + "</div>" +
+        '<div class="big">' + (won ? game.turns.length + " / " + maxTurns + " turns" : "Out of turns") + "</div>" +
         '<div class="answers">' + answers + "</div></div>";
       if (puzzle.note || puzzle.source) {
         h += '<div class="note"><div class="label">From the puzzle maker</div>' +
           (puzzle.note ? "<div>" + esc(puzzle.note) + "</div>" : "") +
           (puzzle.source ? '<div class="source">Source: ' + esc(puzzle.source) + "</div>" : "") + "</div>";
       }
-      h += '<button class="primary share-btn" id="shareBtn" type="button">Share result</button><hr style="border:none;border-top:1px solid var(--line);margin:18px 0 14px">';
+      h += '<button class="primary share-btn" id="shareBtn" type="button">Share result</button><hr class="sep">';
       rb.innerHTML = h;
       $("shareBtn").onclick = share;
     } else {
@@ -469,11 +555,18 @@
   // ---------- wiring ----------
   $("guessForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    submitGuess($("guessInput").value);
+    submitTurn();
+  });
+  // Enter in a field moves to the next empty field; on the last one it submits.
+  $("guessRows").addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
+    var inputs = Array.prototype.slice.call($("guessRows").querySelectorAll("input"));
+    var next = inputs.filter(function (i) { return i !== e.target && !i.value.trim(); })[0];
+    if (next && e.target.value.trim()) { e.preventDefault(); next.focus(); }
   });
   $("helpBtn").onclick = function () { $("helpDialog").showModal(); };
-  $("statsBtn").onclick = function () { openStats(false); };
-  $("resultBtn").onclick = function () { openStats(false); };
+  $("statsBtn").onclick = openStats;
+  $("resultBtn").onclick = openStats;
   $("exportBtn").onclick = exportCode;
   $("importBtn").onclick = importCode;
 
@@ -488,7 +581,8 @@
     });
     d.addEventListener("close", function () {
       if (d.id === "helpDialog" && !store.seenHelp) { store.seenHelp = true; save(); }
-      if (game.status === "playing") $("guessInput").focus();
+      var first = $("guessRows").querySelector("input");
+      if (first) first.focus();
     });
   });
 
@@ -498,6 +592,6 @@
   if (!store.seenHelp && !preview) {
     $("helpDialog").showModal();
   } else if (game.status !== "playing") {
-    openStats(false);
+    openStats();
   }
 })();
