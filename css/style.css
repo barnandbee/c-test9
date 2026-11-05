@@ -321,9 +321,11 @@ main {
 dialog {
   border: none;
   border-radius: 18px;
-  padding: 22px 20px 20px;
+  padding: 0 20px 20px;
   width: min(440px, calc(100vw - 32px));
-  max-height: calc(100vh - 40px);
+  max-height: calc(100vh - 64px);
+  max-height: calc(100dvh - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  margin: auto;
   background: var(--surface);
   color: var(--ink);
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
@@ -331,14 +333,24 @@ dialog {
 dialog::backdrop { background: rgba(20, 16, 12, 0.45); }
 dialog h2 { margin: 0 0 10px; font-size: 1.25rem; }
 dialog p { line-height: 1.45; margin: 8px 0; }
+/* close button stays pinned at the top while the dialog scrolls */
+dialog .close:focus { outline: none; }
 dialog .close {
-  position: absolute;
-  right: 10px; top: 8px;
-  border: none; background: none;
-  font-size: 1.7rem;
+  position: sticky;
+  top: 0;
+  float: right;
+  z-index: 2;
+  width: 44px; height: 44px;
+  margin: 8px -12px 0 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 1.8rem;
   line-height: 1;
   color: var(--muted);
 }
+dialog > h2:first-of-type, dialog > #resultBlock { padding-top: 18px; }
+#resultBlock:empty { display: none; }
 dialog .primary { display: block; width: 100%; margin-top: 14px; }
 
 .help-example svg { width: 100%; max-width: 280px; display: block; margin: 6px auto; }
@@ -509,6 +521,14 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .pie-legend li.now { font-weight: 700; }
 .pie-legend .sw { width: 12px; height: 12px; border-radius: 50%; flex: none; }
 .pie-legend .cnt { margin-left: auto; font-variant-numeric: tabular-nums; }
+.pie-wrap { position: relative; width: 100%; aspect-ratio: 673 / 734; }
+.pie-wrap > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pie-fill {
+  -webkit-mask: url(../img/drawn/pie-mask.png) center / 100% 100% no-repeat;
+  mask: url(../img/drawn/pie-mask.png) center / 100% 100% no-repeat;
+}
+.pie-fill path, .pie-fill rect { fill-opacity: 0.6; stroke: var(--surface); stroke-width: 8; }
+.pie-fill .now { fill-opacity: 0.95; }
 .pie-note { grid-column: 1 / -1; margin: 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
 .past-link {
   display: block;

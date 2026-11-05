@@ -563,6 +563,7 @@
   var PIE_COLOURS = ["#38618C", "#A2AD91", "#FA7921", "#D30C7B", "#5C573E", "#7f8fa6", "#c9a66b"];
   function pieChart(rows) {
     var total = rows.reduce(function (t, r) { return t + r[1]; }, 0);
+    if (DRAWN) return drawnPie(rows, total);
     var R = 46, C = 50, svg = '<svg viewBox="0 0 100 100" class="pie" role="img" aria-label="Results by number of turns">';
     var colour = function (r, i) { return r[0] === "X" ? "#b9b2aa" : PIE_COLOURS[i % PIE_COLOURS.length]; };
     if (!total) {
@@ -593,6 +594,39 @@
         (r[0] === "X" ? "Missed" : r[0] + (r[0] === "1" ? " turn" : " turns")) + '<span class="cnt">' + r[1] + "</span></li>";
     }).join("") + "</ul>";
     return svg + legend + (total ? "" : '<p class="pie-note">Your results will appear here.</p>');
+  }
+
+  function pieLegend(rows, colour, total) {
+    return '<ul class="pie-legend">' + rows.map(function (r, i) {
+      return '<li' + (r[2] ? ' class="now"' : "") + '><span class="sw" style="background:' + colour(r, i) + '"></span>' +
+        (r[0] === "X" ? "Missed" : r[0] + (r[0] === "1" ? " turn" : " turns")) + '<span class="cnt">' + r[1] + "</span></li>";
+    }).join("") + "</ul>" + (total ? "" : '<p class="pie-note">Your results will appear here.</p>');
+  }
+
+  // The same pie, cut to the shape of the left circle of the hand-drawn Venn
+  // (img/drawn/pie-mask.png) with the drawn line on top (pie-outline.png).
+  function drawnPie(rows, total) {
+    var W = 673, H = 734, CX = 340, CY = 366, R = 700;
+    var colour = function (r, i) { return r[0] === "X" ? "#b9b2aa" : PIE_COLOURS[i % PIE_COLOURS.length]; };
+    var svg = '<svg viewBox="0 0 ' + W + " " + H + '" class="pie-fill" aria-hidden="true">';
+    var angle = -Math.PI / 2;
+    rows.forEach(function (r, i) {
+      if (!r[1]) return;
+      var a = r[1] / total * Math.PI * 2;
+      var cls = r[2] ? ' class="now"' : "";
+      if (r[1] === total) {
+        svg += '<rect width="' + W + '" height="' + H + '" fill="' + colour(r, i) + '"' + cls + "/>";
+      } else {
+        var x1 = CX + R * Math.cos(angle), y1 = CY + R * Math.sin(angle);
+        var x2 = CX + R * Math.cos(angle + a), y2 = CY + R * Math.sin(angle + a);
+        svg += '<path d="M' + CX + " " + CY + " L" + x1.toFixed(1) + " " + y1.toFixed(1) +
+          " A" + R + " " + R + " 0 " + (a > Math.PI ? 1 : 0) + " 1 " + x2.toFixed(1) + " " + y2.toFixed(1) + ' Z" fill="' + colour(r, i) + '"' + cls + "/>";
+      }
+      angle += a;
+    });
+    svg += "</svg>";
+    return '<div class="pie-wrap" role="img" aria-label="Results by number of turns">' + (total ? svg : "") +
+      '<img src="img/drawn/pie-outline.png" alt=""></div>' + pieLegend(rows, colour, total);
   }
 
   var countdownTimer;
