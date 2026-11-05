@@ -549,11 +549,7 @@
     var rows = [];
     for (var n = 1; n <= top; n++) rows.push([String(n), dist[n] || 0, !past && !preview && game.status === "won" && game.turns.length === n]);
     rows.push(["X", losses, !past && !preview && game.status === "lost"]);
-    var most = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1]));
-    $("distGraph").innerHTML = rows.map(function (r) {
-      return '<div class="drow"><span class="dlabel">' + r[0] + '</span><span class="dbar' + (r[2] ? " now" : "") +
-        '" style="width:' + Math.max(8, r[1] / most * 100) + '%">' + r[1] + "</span></div>";
-    }).join("");
+    $("distGraph").innerHTML = pieChart(rows);
     $("colourTotals").innerHTML = [["green", "Right circle"], ["blue", "Wrong circle"], ["red", "Misses"]].map(function (c) {
       return '<div><div class="num"><span class="dot ' + c[0] + '"></span>' + cols[c[0]] + '</div><div class="lbl">' + c[1] + "</div></div>";
     }).join("");
@@ -561,6 +557,42 @@
     tickCountdown();
     var d = $("statsDialog");
     if (!d.open) d.showModal();
+  }
+
+  // Pie chart of results: one slice per number of turns, plus missed ("X").
+  var PIE_COLOURS = ["#38618C", "#A2AD91", "#FA7921", "#D30C7B", "#5C573E", "#7f8fa6", "#c9a66b"];
+  function pieChart(rows) {
+    var total = rows.reduce(function (t, r) { return t + r[1]; }, 0);
+    var R = 46, C = 50, svg = '<svg viewBox="0 0 100 100" class="pie" role="img" aria-label="Results by number of turns">';
+    var colour = function (r, i) { return r[0] === "X" ? "#b9b2aa" : PIE_COLOURS[i % PIE_COLOURS.length]; };
+    if (!total) {
+      svg += '<circle cx="50" cy="50" r="' + R + '" class="pie-empty"/>';
+    } else {
+      var angle = -Math.PI / 2;
+      rows.forEach(function (r, i) {
+        if (!r[1]) return;
+        var a = r[1] / total * Math.PI * 2;
+        // today's slice is nudged out from the centre
+        var mid = angle + a / 2, off = r[2] && r[1] < total ? 4 : 0;
+        var dx = Math.cos(mid) * off, dy = Math.sin(mid) * off;
+        var cls = r[2] ? ' class="now"' : "";
+        if (r[1] === total) {
+          svg += '<circle cx="50" cy="50" r="' + R + '" fill="' + colour(r, i) + '"' + cls + "/>";
+        } else {
+          var x1 = C + dx + R * Math.cos(angle), y1 = C + dy + R * Math.sin(angle);
+          var x2 = C + dx + R * Math.cos(angle + a), y2 = C + dy + R * Math.sin(angle + a);
+          svg += '<path d="M' + (C + dx).toFixed(2) + " " + (C + dy).toFixed(2) + " L" + x1.toFixed(2) + " " + y1.toFixed(2) +
+            " A" + R + " " + R + " 0 " + (a > Math.PI ? 1 : 0) + " 1 " + x2.toFixed(2) + " " + y2.toFixed(2) + ' Z" fill="' + colour(r, i) + '"' + cls + "/>";
+        }
+        angle += a;
+      });
+    }
+    svg += "</svg>";
+    var legend = '<ul class="pie-legend">' + rows.map(function (r, i) {
+      return '<li' + (r[2] ? ' class="now"' : "") + '><span class="sw" style="background:' + colour(r, i) + '"></span>' +
+        (r[0] === "X" ? "Missed" : r[0] + (r[0] === "1" ? " turn" : " turns")) + '<span class="cnt">' + r[1] + "</span></li>";
+    }).join("") + "</ul>";
+    return svg + legend + (total ? "" : '<p class="pie-note">Your results will appear here.</p>');
   }
 
   var countdownTimer;
