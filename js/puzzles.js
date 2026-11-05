@@ -36,6 +36,9 @@
 window.VENN_SITE = {
   name: "On The Venns",
   maker: { name: "Bass Moultapps", logo: "img/bass-moultapps.jpg" },
+  // Hand-drawn title, Venn and guess boxes (img/drawn/). Set to false to go
+  // back to the plain drawn-by-code look. ?drawn=0 in the URL also switches it off.
+  drawn: true,
   // Set these later. Nothing is shown while they're empty.
   kofiUrl: "",
   footerSponsor: null // e.g. { name: "Some Charity", url: "https://..." }

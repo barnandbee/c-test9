@@ -54,6 +54,9 @@
   var today = localDate();
   var puzzle, index, preview = false, previewReason = "";
 
+  var DRAWN = SITE.drawn !== false && params.get("drawn") !== "0";
+  document.documentElement.classList.toggle("drawn", DRAWN);
+
   var sampleKey = params.get("sample");
   if (sampleKey && SAMPLES[sampleKey]) {
     puzzle = SAMPLES[sampleKey];
@@ -134,8 +137,12 @@
     return POS_NAMES[nCircles][id] || id;
   }
   function slotSwatch(id) {
-    var cols = id.split("").map(function (l) { return "var(--c" + "ABC".indexOf(l) + ")"; });
-    return cols.length === 1 ? cols[0] : "linear-gradient(90deg," + cols.join(",") + ")";
+    var cols = id.split("").map(function (l) {
+      var c = "var(--c" + "ABC".indexOf(l) + ")";
+      return DRAWN ? "color-mix(in srgb, " + c + " 45%, transparent)" : c;
+    });
+    if (cols.length === 1) cols.push(cols[0]);
+    return "linear-gradient(90deg," + cols.join(",") + ")";
   }
 
   // ---------- storage ----------
@@ -189,6 +196,15 @@
 
   // ---------- layouts ----------
   var LAYOUTS = {
+    // the hand-drawn pair of circles (img/drawn/venn.png, 1000 x 750)
+    drawn2: {
+      w: 1000, h: 750,
+      regions: {
+        A: { x: 176, y: 375, w: 270 },
+        B: { x: 826, y: 375, w: 270 },
+        AB: { x: 500, y: 385, w: 290 }
+      }
+    },
     2: {
       w: 400, h: 270,
       circles: [{ cx: 150, cy: 140, r: 118 }, { cx: 250, cy: 140, r: 118 }],
@@ -229,7 +245,8 @@
   }
 
   function renderMeta() {
-    $("siteName").textContent = NAME;
+    if (DRAWN) $("siteName").innerHTML = '<img src="img/drawn/title.png" alt="' + esc(NAME) + '" width="600" height="180">';
+    else $("siteName").textContent = NAME;
     document.title = NAME;
     var type = puzzle.type || "classic";
     var num = index >= 0 ? "#" + (index + 1) : "Sample";
@@ -272,8 +289,12 @@
   }
 
   function renderBoard() {
-    var L = LAYOUTS[nCircles];
-    var svg = '<svg viewBox="0 0 ' + L.w + " " + L.h + '" role="img" aria-label="Venn diagram">';
+    var useDrawn = DRAWN && nCircles === 2;
+    var L = LAYOUTS[useDrawn ? "drawn2" : nCircles];
+    if (useDrawn) {
+      var svg = '<div class="venn-img"><img src="img/drawn/venn-fill.png" alt=""><img src="img/drawn/venn.png" alt="Venn diagram"></div>';
+    } else {
+    svg = '<svg viewBox="0 0 ' + L.w + " " + L.h + '" role="img" aria-label="Venn diagram">';
     L.circles.forEach(function (c, i) {
       svg += '<circle class="c c' + i + '" cx="' + c.cx + '" cy="' + c.cy + '" r="' + c.r + '"/>';
     });
@@ -283,6 +304,7 @@
       }
     });
     svg += "</svg>";
+    }
 
     var html = svg;
     var over = game.status !== "playing";
@@ -326,7 +348,7 @@
           ' aria-label="Guess for ' + esc(slotName(s.id)) + (s.hint ? ", clue " + esc(s.hint) : "") + '"' +
           (useCountries ? ' list="suggestions"' : "") + ' autocapitalize="words" spellcheck="false" enterkeyhint="next">';
       return '<div class="grow' + (solved ? " solved" : "") + '">' +
-        '<span class="tag" style="background:' + slotSwatch(s.id) + '" title="' + esc(slotName(s.id)) + '">' + esc(s.hint || "") + "</span>" +
+        '<span class="tag" style="--sw:' + slotSwatch(s.id) + '" title="' + esc(slotName(s.id)) + '">' + esc(s.hint || "") + "</span>" +
         field +
         '<span class="dot ' + res + '" title="' + esc(resultText(res)) + '"></span></div>';
     }).join("");
@@ -342,7 +364,11 @@
 
   function renderTurns() {
     var dots = "";
-    for (var i = 0; i < maxTurns; i++) dots += '<span class="' + (game.turns[i] ? "used" : "") + '"></span>';
+    for (var i = 0; i < maxTurns; i++) {
+      dots += '<span class="' + (game.turns[i] ? "used" : "") + '"' +
+        (DRAWN ? ' style="background-image:url(img/drawn/dot' + (i % 5 + 1) + '.png)' +
+          (game.turns[i] ? ",radial-gradient(circle at 50% 52%, var(--ink) 0 38%, transparent 42%)" : "") + '"' : "") + "></span>";
+    }
     $("guessDots").innerHTML = dots;
     $("guessDots").setAttribute("aria-label", game.turns.length + " of " + maxTurns + " turns used");
 

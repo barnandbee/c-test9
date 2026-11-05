@@ -17,8 +17,9 @@
   color-scheme: light;
 }
 
+/* The hand-drawn style is designed for paper, so it stays light. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.drawn) {
     --bg: #1d1b19;
     --surface: #2a2724;
     --ink: #f2ece4;
@@ -224,6 +225,7 @@ main {
   font-size: 0.95rem;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  background: var(--sw);
 }
 .grow input, .grow .locked {
   flex: 1;
@@ -394,4 +396,64 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; }
+}
+
+/* =====================================================================
+   Hand-drawn style (html.drawn). Turn off with drawn: false in
+   js/puzzles.js, or add ?drawn=0 to the URL to compare.
+   ===================================================================== */
+.drawn body {
+  --ink: #1e2640;
+  font-family: "Patrick Hand", ui-rounded, system-ui, sans-serif;
+  font-size: 1.08rem;
+}
+.drawn .brand h1 img { display: block; height: 52px; width: auto; margin: 0 auto; }
+.drawn .top { border-bottom: none; padding-bottom: 4px; }
+
+.board .venn-img { position: relative; width: 100%; aspect-ratio: 4 / 3; }
+.board .venn-img img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.drawn .region .answer, .drawn .region .text-answer .fixed { font-weight: 400; font-size: clamp(18px, 6.4cqw, 32px); }
+.drawn .region .fixed { font-weight: 400; font-size: clamp(14px, 4.4cqw, 22px); }
+.drawn .region .hint { font-weight: 400; font-size: clamp(14px, 4.2cqw, 21px); }
+.drawn .slot .blank { border-bottom-width: 2px; }
+
+.drawn .guess-dots { gap: 10px; }
+.drawn .guess-dots span {
+  width: 18px; height: 20px;
+  border: none;
+  border-radius: 0;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.drawn .guess-dots span.used { background-color: transparent; }
+
+.drawn .guess-rows { column-gap: 14px; row-gap: 10px; }
+.drawn .grow .tag {
+  min-width: 54px;
+  padding: 10px 10px 13px 8px;
+  border-radius: 0;
+  color: var(--ink);
+  text-shadow: none;
+  font-weight: 400;
+  font-size: 1.15rem;
+  background: url(../img/drawn/box1.png) center / 100% 100% no-repeat,
+              var(--sw) 9px 8px / calc(100% - 24px) calc(100% - 26px) no-repeat;
+}
+.drawn .grow:nth-of-type(2n) .tag { background-image: url(../img/drawn/box2.png), var(--sw); }
+.drawn .grow input, .drawn .grow .locked {
+  border: none;
+  border-radius: 0;
+  font-size: 1.2rem;
+  padding: 13px 18px;
+  background: url(../img/drawn/bar1.png) center / 100% 100% no-repeat;
+}
+.drawn .grow:nth-of-type(2n) input, .drawn .grow:nth-of-type(2n) .locked { background-image: url(../img/drawn/bar2.png); }
+.drawn .grow .locked { padding-left: 18px; }
+.drawn .grow input:focus { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--c2) 80%, transparent)); }
+.drawn .grow input::-webkit-calendar-picker-indicator { display: none !important; }
+.drawn .guess-form button {
+  border-radius: 12px 4px 14px 6px / 6px 14px 4px 12px;
+  font-size: 1.15rem;
+  font-weight: 400;
 }

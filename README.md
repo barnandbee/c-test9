@@ -50,3 +50,10 @@ the player can paste on another device.
 
 Repository Settings → Pages → Build and deployment → Source: "Deploy from a branch",
 then pick the branch and `/ (root)`.
+
+## Hand-drawn style
+
+The title, two-circle Venn, guess boxes and turn counter use pieces cut from a
+hand drawing (`img/drawn/`). To go back to the plain look, set `drawn: false`
+in `js/puzzles.js`. Adding `?drawn=0` to the URL shows the plain look without
+changing anything. Three-circle (mega) diagrams are still drawn by code.
