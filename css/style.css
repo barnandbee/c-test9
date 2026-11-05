@@ -13,7 +13,7 @@
   --circle-opacity: 0.32;
   --blend: multiply;
   --radius: 14px;
-  font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Quicksand", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: light;
 }
 
@@ -404,17 +404,15 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
    ===================================================================== */
 .drawn body {
   --ink: #1e2640;
-  font-family: "Patrick Hand", ui-rounded, system-ui, sans-serif;
-  font-size: 1.08rem;
 }
 .drawn .brand h1 img { display: block; height: 52px; width: auto; margin: 0 auto; }
 .drawn .top { border-bottom: none; padding-bottom: 4px; }
 
 .board .venn-img { position: relative; width: 100%; aspect-ratio: 4 / 3; }
 .board .venn-img img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.drawn .region .answer, .drawn .region .text-answer .fixed { font-weight: 400; font-size: clamp(18px, 6.4cqw, 32px); }
-.drawn .region .fixed { font-weight: 400; font-size: clamp(14px, 4.4cqw, 22px); }
-.drawn .region .hint { font-weight: 400; font-size: clamp(14px, 4.2cqw, 21px); }
+.drawn .region .answer, .drawn .region.text-answer .fixed { font-weight: 700; font-size: clamp(16px, 5.6cqw, 28px); }
+.drawn .region .fixed { font-weight: 700; font-size: clamp(12px, 3.9cqw, 19px); }
+.drawn .region .hint { font-weight: 700; font-size: clamp(12px, 3.6cqw, 18px); }
 .drawn .slot .blank { border-bottom-width: 2px; }
 
 .drawn .guess-dots { gap: 10px; }
@@ -435,8 +433,8 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
   border-radius: 0;
   color: var(--ink);
   text-shadow: none;
-  font-weight: 400;
-  font-size: 1.15rem;
+  font-weight: 700;
+  font-size: 1rem;
   background: url(../img/drawn/box1.png) center / 100% 100% no-repeat,
               var(--sw) 9px 8px / calc(100% - 24px) calc(100% - 26px) no-repeat;
 }
@@ -444,7 +442,8 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
 .drawn .grow input, .drawn .grow .locked {
   border: none;
   border-radius: 0;
-  font-size: 1.2rem;
+  font-size: 1.05rem;
+  font-weight: 600;
   padding: 13px 18px;
   background: url(../img/drawn/bar1.png) center / 100% 100% no-repeat;
 }
@@ -454,6 +453,5 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
 .drawn .grow input::-webkit-calendar-picker-indicator { display: none !important; }
 .drawn .guess-form button {
   border-radius: 12px 4px 14px 6px / 6px 14px 4px 12px;
-  font-size: 1.15rem;
-  font-weight: 400;
+  font-weight: 700;
 }
