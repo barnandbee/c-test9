@@ -28,7 +28,7 @@
 //   suggest:     "countries" turns on country autocomplete, and a guess that
 //                isn't a country doesn't use up a turn
 //   instruction: one line shown above the diagram
-//   note:        your personal note, shown when the round ends
+//   note:        the setter's story, shown when the round ends
 //   source:      where the data came from (shown with the note)
 //   sponsor:     optional { name, url } shown under the puzzle
 // =====================================================================
@@ -69,7 +69,7 @@ window.VENN_PUZZLES = [
       B:  { slot: { hint: "#22", answer: "Sweden", accept: ["sweden"] } },
       AB: { text: "Cardamom imports by country, 2019" }
     },
-    note: "Write a line or two here about why you picked today's puzzle.",
+    note: "I was just thinking how much I liked cardamom, having enjoyed a sweet Diwali treat from a colleague. It took me back to a trip to Stockholm and the continual hankering for a cardamom or cinnamon bun. And, in my brain, that's how this whole Venn thing came about.",
     source: "Ranking of countries by cardamom imports, 2019."
   }
 ];

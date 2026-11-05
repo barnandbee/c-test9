@@ -13,7 +13,7 @@
   --circle-opacity: 0.32;
   --blend: multiply;
   --radius: 14px;
-  font-family: "Barlow", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Goudy Bookletter 1911", Georgia, ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: light;
 }
 
@@ -92,8 +92,8 @@ main {
 }
 .instruction { text-align: center; margin: 4px 0 8px; font-size: 1.05rem; }
 .preview-banner {
-  background: var(--c2);
-  color: #2b2622;
+  background: var(--line);
+  color: var(--ink);
   border-radius: 8px;
   padding: 6px 10px;
   font-size: 0.85rem;
@@ -484,3 +484,55 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
   border-radius: 12px 4px 14px 6px / 6px 14px 4px 12px;
   font-weight: 700;
 }
+
+/* Header: three columns so the title stays centred */
+.top { display: grid; grid-template-columns: 1fr auto 1fr; }
+.hgroup { display: flex; gap: 2px; }
+.hgroup.right { justify-content: flex-end; }
+
+/* Stats extras */
+dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.06em; }
+.stats.three { grid-template-columns: repeat(3, 1fr); }
+.stats .num .dot { width: 12px; height: 12px; margin-right: 6px; vertical-align: 2px; }
+.dist { display: flex; flex-direction: column; gap: 4px; }
+.drow { display: flex; align-items: center; gap: 8px; }
+.dlabel { width: 14px; text-align: center; }
+.dbar {
+  background: var(--muted);
+  color: #fff;
+  text-align: right;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 22px;
+}
+.dbar.now { background: var(--good); }
+.past-link {
+  display: block;
+  width: 100%;
+  margin: 4px 0 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+/* Venns of the Past */
+#pastDialog .sub { color: var(--muted); font-size: 0.95rem; }
+.past-list { list-style: none; padding: 0; margin: 10px 0 0; max-height: 60vh; overflow-y: auto; }
+.past-list li + li { border-top: 1px solid var(--line); }
+.past-list a { display: flex; align-items: center; gap: 12px; padding: 10px 4px; color: var(--ink); text-decoration: none; }
+.past-list a:hover { background: var(--bg); }
+.past-list .empty { color: var(--muted); padding: 12px 0; }
+.ptext { display: flex; flex-direction: column; }
+.pstatus { font-size: 0.85rem; color: var(--muted); }
+.pstatus.won { color: var(--good); }
+.pstatus.lost { color: var(--bad); }
+.mini {
+  flex: none;
+  width: 40px; height: 26px;
+  background:
+    radial-gradient(circle at 13px 13px, color-mix(in srgb, var(--a) 55%, transparent) 11px, transparent 12px),
+    radial-gradient(circle at 27px 13px, color-mix(in srgb, var(--b) 55%, transparent) 11px, transparent 12px);
+}
+.preview-banner a { color: inherit; font-weight: 700; }

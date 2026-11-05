@@ -52,7 +52,10 @@
   // ---------- pick today's puzzle ----------
   var params = new URLSearchParams(location.search);
   var today = localDate();
-  var puzzle, index, preview = false, previewReason = "";
+  var puzzle, index, preview = false, past = false, previewReason = "";
+  // today's live puzzle: the latest one dated today or earlier
+  var liveIndex = 0;
+  PUZZLES.forEach(function (p, i) { if (p.date <= today) liveIndex = i; });
 
   var DRAWN = SITE.drawn !== false && params.get("drawn") !== "0";
   document.documentElement.classList.toggle("drawn", DRAWN);
@@ -70,9 +73,10 @@
     if (index < 0) index = 0; // before launch: show the first puzzle
     puzzle = PUZZLES[index];
     if (params.get("d") && puzzle) {
-      var liveIndex = -1;
-      PUZZLES.forEach(function (p, i) { if (p.date <= today) liveIndex = i; });
-      if (index !== Math.max(liveIndex, 0)) {
+      if (index < liveIndex) {
+        // Venns of the Past: playable for fun, saved separately, never counted
+        past = true;
+      } else if (index > liveIndex) {
         preview = true;
         previewReason = "Previewing the puzzle for " + puzzle.date + ". Nothing is saved.";
       }
@@ -87,7 +91,8 @@
   // Circle colours rotate through VENN_SITE.colourSets, one set per puzzle,
   // unless the puzzle sets its own `colours`.
   var colourSets = SITE.colourSets && SITE.colourSets.length ? SITE.colourSets : [["#e8735a", "#3a9e9a", "#e2b23c"]];
-  var colours = puzzle.colours || colourSets[(index >= 0 ? index : (sampleKey || "").length) % colourSets.length];
+  function coloursFor(p, i) { return p.colours || colourSets[i % colourSets.length]; }
+  var colours = coloursFor(puzzle, index >= 0 ? index : (sampleKey || "").length);
   colours.forEach(function (c, i) { document.documentElement.style.setProperty("--c" + i, c); });
 
   var maxTurns = puzzle.maxGuesses || 5;
@@ -155,7 +160,8 @@
   function defaultStore() {
     return {
       stats: { played: 0, wins: 0, streak: 0, maxStreak: 0, lastWinIndex: null, lastWinDate: null },
-      games: {},
+      games: {},    // daily puzzles, played on the day: these count
+      practice: {}, // Venns of the Past played later, just for fun
       seenHelp: false
     };
   }
@@ -169,6 +175,7 @@
         return {
           stats: Object.assign(d.stats, s.stats || {}),
           games: s.games || {},
+          practice: s.practice || {},
           seenHelp: !!s.seenHelp
         };
       }
@@ -189,16 +196,26 @@
     var st = store.stats;
     if (st.lastWinDate) {
       var lastIdx = PUZZLES.findIndex(function (p) { return p.date === st.lastWinDate; });
-      if (lastIdx < 0 || lastIdx < index - 1) { st.streak = 0; save(); }
+      if (lastIdx < 0 || lastIdx < liveIndex - 1) { st.streak = 0; save(); }
     }
   }
 
-  var game = (!preview && store.games[puzzle.date]) || { turns: [], solved: [], status: "playing" };
+  function freshGame() { return { turns: [], solved: [], status: "playing" }; }
+  var game;
+  if (preview) {
+    game = freshGame();
+  } else if (past) {
+    // a past Venn finished on its day shows that result; otherwise play it for fun
+    var onTheDay = store.games[puzzle.date];
+    if (onTheDay && onTheDay.turns && onTheDay.status !== "playing") game = onTheDay;
+    else game = store.practice[puzzle.date] = store.practice[puzzle.date] || freshGame();
+  } else {
+    game = store.games[puzzle.date] = store.games[puzzle.date] || freshGame();
+  }
   if (!game.turns) { // saved by the first prototype (one guess per turn)
     game.turns = [];
     delete game.guesses;
   }
-  if (!preview) store.games[puzzle.date] = game;
 
   // ---------- layouts ----------
   var LAYOUTS = {
@@ -265,6 +282,11 @@
       (type !== "classic" ? ' <span class="badge ' + esc(type) + '">' + esc(type) + "</span>" : "");
     $("instruction").textContent = puzzle.instruction || "";
     if (preview) { $("previewBanner").hidden = false; $("previewBanner").textContent = previewReason; }
+    if (past) {
+      $("previewBanner").hidden = false;
+      $("previewBanner").innerHTML = "A Venn of the Past, just for fun. It won't change your stats. " +
+        '<a href="./">Back to today\'s Venn</a>';
+    }
 
     if (useCountries) {
       $("suggestions").innerHTML = (window.VENN_COUNTRIES || []).map(function (c) {
@@ -453,7 +475,7 @@
   function finish(status) {
     game.status = status;
     game.finishedAt = Date.now();
-    if (!preview) {
+    if (!preview && !past) {
       var st = store.stats;
       st.played += 1;
       if (status === "won") {
@@ -474,7 +496,7 @@
   var EMOJI = { green: "🟢", blue: "🔵", red: "🔴" };
 
   function shareText() {
-    var num = index >= 0 ? "#" + (index + 1) : "(sample)";
+    var num = index >= 0 ? "#" + (index + 1) + (past ? " (Venn of the Past)" : "") : "(sample)";
     var score = game.status === "won" ? game.turns.length + "/" + maxTurns : "X/" + maxTurns;
     var rows = game.turns.map(function (t) {
       return slots.map(function (s) { return t[s.id] ? EMOJI[t[s.id].result] : "⬜"; }).join("");
@@ -488,11 +510,11 @@
       var won = game.status === "won";
       var answers = slots.map(function (s) { return esc(s.answer); }).join(" &middot; ");
       var h = '<div class="result-head">' +
-        "<div>" + (won ? "Solved" : "Better luck tomorrow") + "</div>" +
+        "<div>" + (won ? "Solved" : past ? "Not this time" : "Better luck tomorrow") + "</div>" +
         '<div class="big">' + (won ? game.turns.length + " / " + maxTurns + " turns" : "Out of turns") + "</div>" +
         '<div class="answers">' + answers + "</div></div>";
       if (puzzle.note || puzzle.source) {
-        h += '<div class="note"><div class="label">From the puzzle maker</div>' +
+        h += '<div class="note"><div class="label">The setter\'s story</div>' +
           (puzzle.note ? "<div>" + esc(puzzle.note) + "</div>" : "") +
           (puzzle.source ? '<div class="source">Source: ' + esc(puzzle.source) + "</div>" : "") + "</div>";
       }
@@ -509,6 +531,31 @@
       [st.played, "Played"], [pct, "Win %"], [st.streak, "Current streak"], [st.maxStreak, "Best streak"]
     ].map(function (x) {
       return '<div><div class="num">' + x[0] + '</div><div class="lbl">' + x[1] + "</div></div>";
+    }).join("");
+
+    // guess distribution and lifetime colours, worked out from saved daily games
+    var dist = {}, cols = { green: 0, blue: 0, red: 0 }, losses = 0, top = 5;
+    Object.keys(store.games).forEach(function (date) {
+      var g = store.games[date];
+      if (!g || !g.turns) return;
+      if (g.status === "won") {
+        dist[g.turns.length] = (dist[g.turns.length] || 0) + 1;
+        top = Math.max(top, g.turns.length);
+      } else if (g.status === "lost") losses++;
+      g.turns.forEach(function (t) {
+        Object.keys(t).forEach(function (id) { if (t[id] && cols[t[id].result] != null) cols[t[id].result]++; });
+      });
+    });
+    var rows = [];
+    for (var n = 1; n <= top; n++) rows.push([String(n), dist[n] || 0, !past && !preview && game.status === "won" && game.turns.length === n]);
+    rows.push(["X", losses, !past && !preview && game.status === "lost"]);
+    var most = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1]));
+    $("distGraph").innerHTML = rows.map(function (r) {
+      return '<div class="drow"><span class="dlabel">' + r[0] + '</span><span class="dbar' + (r[2] ? " now" : "") +
+        '" style="width:' + Math.max(8, r[1] / most * 100) + '%">' + r[1] + "</span></div>";
+    }).join("");
+    $("colourTotals").innerHTML = [["green", "Right circle"], ["blue", "Wrong circle"], ["red", "Misses"]].map(function (c) {
+      return '<div><div class="num"><span class="dot ' + c[0] + '"></span>' + cols[c[0]] + '</div><div class="lbl">' + c[1] + "</div></div>";
     }).join("");
 
     tickCountdown();
@@ -559,9 +606,36 @@
     }
   }
 
+  // ---------- Venns of the Past ----------
+  function openPast() {
+    var items = [];
+    for (var i = liveIndex - 1; i >= 0; i--) {
+      var p = PUZZLES[i];
+      var day = store.games[p.date], fun = store.practice[p.date];
+      var status = "Not played", cls = "";
+      if (day && day.turns && day.status === "won") { status = "Solved in " + day.turns.length; cls = "won"; }
+      else if (day && day.turns && day.status === "lost") { status = "Missed"; cls = "lost"; }
+      else if (fun && fun.status === "won") { status = "Solved for fun in " + fun.turns.length; cls = "won"; }
+      else if (fun && fun.status === "lost") { status = "Missed (for fun)"; cls = "lost"; }
+      else if (fun && fun.turns && fun.turns.length) { status = "In progress"; }
+      var c = coloursFor(p, i);
+      var dp = p.date.split("-");
+      var dateTxt = new Date(+dp[0], +dp[1] - 1, +dp[2]).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+      var keep = DRAWN ? "" : "&drawn=0";
+      items.push('<li><a href="?d=' + esc(p.date) + keep + '">' +
+        '<span class="mini" style="--a:' + esc(c[0]) + ";--b:" + esc(c[1]) + '"></span>' +
+        '<span class="ptext"><span><strong>#' + (i + 1) + "</strong> · " + esc(dateTxt) +
+        (p.type && p.type !== "classic" ? ' <span class="badge ' + esc(p.type) + '">' + esc(p.type) + "</span>" : "") +
+        '</span><span class="pstatus ' + cls + '">' + esc(status) + "</span></span></a></li>");
+    }
+    $("pastList").innerHTML = items.length ? items.join("") :
+      '<li class="empty">No past Venns yet. Today\'s is the first one, so come back tomorrow.</li>';
+    $("pastDialog").showModal();
+  }
+
   // ---------- backup ----------
   function exportCode() {
-    var json = JSON.stringify({ v: 1, stats: store.stats, games: store.games });
+    var json = JSON.stringify({ v: 1, stats: store.stats, games: store.games, practice: store.practice });
     var code = btoa(unescape(encodeURIComponent(json)));
     copy(code, "Code copied. Paste it on your other device.");
   }
@@ -575,6 +649,7 @@
       if (!window.confirm("Replace the stats on this device with the ones from your code?")) return;
       store.stats = Object.assign(defaultStore().stats, data.stats);
       store.games = data.games || {};
+      store.practice = data.practice || {};
       store.seenHelp = true;
       preview = false;
       save();
@@ -597,6 +672,8 @@
     if (next && e.target.value.trim()) { e.preventDefault(); next.focus(); }
   });
   $("helpBtn").onclick = function () { $("helpDialog").showModal(); };
+  $("pastBtn").onclick = openPast;
+  $("pastLink").onclick = function () { $("statsDialog").close(); openPast(); };
   $("statsBtn").onclick = openStats;
   $("resultBtn").onclick = openStats;
   $("exportBtn").onclick = exportCode;
