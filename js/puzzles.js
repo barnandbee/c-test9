@@ -39,6 +39,18 @@ window.VENN_SITE = {
   // Hand-drawn title, Venn and guess boxes (img/drawn/). Set to false to go
   // back to the plain drawn-by-code look. ?drawn=0 in the URL also switches it off.
   drawn: true,
+  // Circle colours. Each puzzle takes the next set in this list (left, right,
+  // and a third for mega days), then it starts again from the top.
+  // A puzzle can also pick its own with colours: ["#D30C7B", "#38618C"].
+  //   Hot Rose #D30C7B · Dark Khaki #5C573E · Pumpkin Spice #FA7921
+  //   Dry Sage #A2AD91 · Baltic Blue #38618C
+  colourSets: [
+    ["#38618C", "#FA7921", "#A2AD91"], // Baltic Blue + Pumpkin Spice
+    ["#D30C7B", "#A2AD91", "#5C573E"], // Hot Rose + Dry Sage
+    ["#FA7921", "#5C573E", "#38618C"], // Pumpkin Spice + Dark Khaki
+    ["#38618C", "#D30C7B", "#FA7921"], // Baltic Blue + Hot Rose
+    ["#A2AD91", "#FA7921", "#D30C7B"]  // Dry Sage + Pumpkin Spice
+  ],
   // Set these later. Nothing is shown while they're empty.
   kofiUrl: "",
   footerSponsor: null // e.g. { name: "Some Charity", url: "https://..." }
@@ -49,6 +61,7 @@ window.VENN_PUZZLES = [
     date: "2026-11-05",
     type: "classic",
     instruction: "Name the country in each circle.",
+    // colours: ["#D30C7B", "#38618C"], // optional: override the rotation
     suggest: "countries",
     circles: [{}, {}],
     regions: {

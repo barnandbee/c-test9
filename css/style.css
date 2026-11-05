@@ -13,7 +13,7 @@
   --circle-opacity: 0.32;
   --blend: multiply;
   --radius: 14px;
-  font-family: "Quicksand", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Barlow", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: light;
 }
 
@@ -409,7 +409,18 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
 .drawn .top { border-bottom: none; padding-bottom: 4px; }
 
 .board .venn-img { position: relative; width: 100%; aspect-ratio: 4 / 3; }
-.board .venn-img img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.board .venn-img img, .board .venn-img .fill { position: absolute; inset: 0; width: 100%; height: 100%; }
+.venn-img .fill {
+  opacity: 0.5;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.venn-img .fill-left { background: var(--c0); -webkit-mask-image: url(../img/drawn/mask-left.png); mask-image: url(../img/drawn/mask-left.png); }
+.venn-img .fill-right { background: var(--c1); -webkit-mask-image: url(../img/drawn/mask-right.png); mask-image: url(../img/drawn/mask-right.png); }
+.venn-img .fill-lens {
+  background: color-mix(in oklab, color-mix(in oklab, var(--c0), var(--c1)) 80%, #000);
+  -webkit-mask-image: url(../img/drawn/mask-lens.png); mask-image: url(../img/drawn/mask-lens.png);
+}
 .drawn .region .answer, .drawn .region.text-answer .fixed { font-weight: 700; font-size: clamp(16px, 5.6cqw, 28px); }
 .drawn .region .fixed { font-weight: 700; font-size: clamp(12px, 3.9cqw, 19px); }
 .drawn .region .hint { font-weight: 700; font-size: clamp(12px, 3.6cqw, 18px); }
@@ -435,10 +446,28 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
   text-shadow: none;
   font-weight: 700;
   font-size: 1rem;
-  background: url(../img/drawn/box1.png) center / 100% 100% no-repeat,
-              var(--sw) 9px 8px / calc(100% - 24px) calc(100% - 26px) no-repeat;
+  background: none;
+  position: relative;
+  isolation: isolate;
 }
-.drawn .grow:nth-of-type(2n) .tag { background-image: url(../img/drawn/box2.png), var(--sw); }
+/* tint clipped to the inside of the drawn box, with the drawing on top */
+.drawn .grow .tag::before, .drawn .grow .tag::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.drawn .grow .tag::before {
+  background: var(--sw);
+  -webkit-mask: url(../img/drawn/mask-box1.png) center / 100% 100% no-repeat;
+  mask: url(../img/drawn/mask-box1.png) center / 100% 100% no-repeat;
+}
+.drawn .grow .tag::after { background: url(../img/drawn/box1.png) center / 100% 100% no-repeat; }
+.drawn .grow:nth-of-type(2n) .tag::before {
+  -webkit-mask-image: url(../img/drawn/mask-box2.png);
+  mask-image: url(../img/drawn/mask-box2.png);
+}
+.drawn .grow:nth-of-type(2n) .tag::after { background-image: url(../img/drawn/box2.png); }
 .drawn .grow input, .drawn .grow .locked {
   border: none;
   border-radius: 0;

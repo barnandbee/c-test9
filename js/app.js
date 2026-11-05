@@ -84,6 +84,12 @@
     return;
   }
 
+  // Circle colours rotate through VENN_SITE.colourSets, one set per puzzle,
+  // unless the puzzle sets its own `colours`.
+  var colourSets = SITE.colourSets && SITE.colourSets.length ? SITE.colourSets : [["#e8735a", "#3a9e9a", "#e2b23c"]];
+  var colours = puzzle.colours || colourSets[(index >= 0 ? index : (sampleKey || "").length) % colourSets.length];
+  colours.forEach(function (c, i) { document.documentElement.style.setProperty("--c" + i, c); });
+
   var maxTurns = puzzle.maxGuesses || 5;
   var nCircles = puzzle.circles && puzzle.circles.length === 3 ? 3 : 2;
   var useCountries = puzzle.suggest === "countries";
@@ -292,7 +298,7 @@
     var useDrawn = DRAWN && nCircles === 2;
     var L = LAYOUTS[useDrawn ? "drawn2" : nCircles];
     if (useDrawn) {
-      var svg = '<div class="venn-img"><img src="img/drawn/venn-fill.png" alt=""><img src="img/drawn/venn.png" alt="Venn diagram"></div>';
+      var svg = '<div class="venn-img"><div class="fill fill-left"></div><div class="fill fill-lens"></div><div class="fill fill-right"></div><img src="img/drawn/venn.png" alt="Venn diagram"></div>';
     } else {
     svg = '<svg viewBox="0 0 ' + L.w + " " + L.h + '" role="img" aria-label="Venn diagram">';
     L.circles.forEach(function (c, i) {
