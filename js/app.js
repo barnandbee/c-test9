@@ -534,7 +534,9 @@
       if (puzzle.note || puzzle.source) {
         h += '<div class="note"><div class="label">The setter\'s story</div>' +
           (puzzle.note ? "<div>" + esc(puzzle.note) + "</div>" : "") +
-          (puzzle.source ? '<div class="source">Source: ' + esc(puzzle.source) + "</div>" : "") + "</div>";
+          (puzzle.source ? '<div class="source">Source: ' + (puzzle.sourceUrl
+            ? '<a href="' + esc(puzzle.sourceUrl) + '" target="_blank" rel="noopener">' + esc(puzzle.source) + "</a>"
+            : esc(puzzle.source)) + "</div>" : "") + "</div>";
       }
       h += '<button class="primary share-btn" id="shareBtn" type="button">Share result</button>' +
         (DRAWN ? '<div class="chain-divider" role="separator"></div>' : '<hr class="sep">');

@@ -388,6 +388,7 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
 }
 .note .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
 .note .source { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+.note .source a { color: inherit; }
 .share-btn { background: var(--good) !important; color: #fff !important; }
 
 .stats {
