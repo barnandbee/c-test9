@@ -63,3 +63,10 @@ Circle colours rotate puzzle by puzzle through `colourSets` in `js/puzzles.js`.
 Corner decorations (`img/drawn/corner-*.png`), the chain-of-circles divider
 (`chain.png`) and the pie-chart circle (`pie-outline.png`, `pie-mask.png`) are
 also cut from drawings, and only show in the hand-drawn style.
+
+## Rosettes
+
+Eleven awards shown on the stats screen as greyed-out rosettes until earned.
+Only the titles are shown, never how to earn them. The list and the rules are
+in `js/app.js` (`ROSETTES` and `checkAwards`). Clicking the "CORNER" drawing
+earns one and switches to the plain look (`?drawn=0`); a footer link switches back.

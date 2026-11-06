@@ -570,16 +570,17 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
   height: auto;
   --k: 0.24; /* screen px per px of the scanned drawing */
 }
-.drawn body { position: relative; padding-top: 34px; padding-bottom: 64px; }
+.drawn body { position: relative; padding-top: 44px; padding-bottom: 64px; }
 .drawn .corner-tl { top: 6px; left: 6px; width: calc(var(--k) * 209px); }
-.drawn .corner-tr { top: 6px; right: 6px; width: calc(var(--k) * 208px); }
+.drawn .corner-tr { top: 4px; right: 6px; width: calc(var(--k) * 0.65 * 252px); }
 .drawn .corner-bl { bottom: 6px; left: 6px; width: calc(var(--k) * 258px); }
-.drawn .corner-br { bottom: 6px; right: 6px; width: calc(var(--k) * 252px); }
+.drawn .corner-br { bottom: 6px; right: 6px; width: calc(var(--k) * 208px); pointer-events: auto; cursor: pointer; }
 .drawn .top, .drawn main, .drawn .foot { position: relative; z-index: 1; }
 /* wide screens: corners pinned to the window, in the margins beside the game */
 @media (min-width: 900px) {
   .drawn body { padding-top: 0; padding-bottom: 0; }
   .drawn .corner { position: fixed; --k: 0.5; }
+  .drawn .corner-tr { width: calc(var(--k) * 252px); }
   .drawn .corner-tl, .drawn .corner-tr { top: 16px; }
   .drawn .corner-tl, .drawn .corner-bl { left: 16px; }
   .drawn .corner-tr, .drawn .corner-br { right: 16px; }
@@ -596,3 +597,21 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 }
 .drawn .maker { border-top: none; padding-top: 0; margin-top: 0; }
 .drawn .foot .chain-divider { max-width: 360px; height: 30px; margin: 0 auto 14px; }
+
+/* Rosettes */
+.rosette-count { text-transform: none; letter-spacing: 0; }
+.rosettes {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 6px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 8px;
+}
+.rosettes li { text-align: center; font-size: 0.85rem; line-height: 1.2; }
+.rosettes svg { display: block; width: 52px; height: 64px; margin: 0 auto 4px; }
+.rosettes li.locked { color: var(--muted); }
+.rosettes li.locked svg { filter: grayscale(1); opacity: 0.3; }
+.rosettes li.new svg { animation: pop 0.6s cubic-bezier(.2,1.6,.4,1); }
+.rosettes li.new .rtitle::after { content: " \2022 new"; color: var(--good); font-weight: 700; }
+.plain-link { display: block; color: var(--muted); }

@@ -162,6 +162,8 @@
       stats: { played: 0, wins: 0, streak: 0, maxStreak: 0, lastWinIndex: null, lastWinDate: null },
       games: {},    // daily puzzles, played on the day: these count
       practice: {}, // Venns of the Past played later, just for fun
+      awards: {},   // rosettes: id -> time unlocked
+      unseen: [],   // rosettes unlocked since the stats were last opened
       seenHelp: false
     };
   }
@@ -176,6 +178,8 @@
           stats: Object.assign(d.stats, s.stats || {}),
           games: s.games || {},
           practice: s.practice || {},
+          awards: s.awards || {},
+          unseen: s.unseen || [],
           seenHelp: !!s.seenHelp
         };
       }
@@ -313,6 +317,10 @@
         "Made by " + esc(SITE.maker.name) + "</div>");
     }
     if (DRAWN) foot.unshift('<div class="chain-divider" role="separator"></div>');
+    if (!DRAWN && SITE.drawn !== false) {
+      var p2 = new URLSearchParams(location.search); p2.delete("drawn");
+      foot.push('<a class="plain-link" href="?' + esc(p2.toString()) + '">Switch to the hand-drawn look</a>');
+    }
     $("footer").innerHTML = foot.join("");
     $("footer").hidden = !foot.length;
   }
@@ -452,6 +460,9 @@
       if (res === "green") { game.solved.push(e.slot.id); justSolved.push(e.slot.id); }
     });
     game.turns.push(turn);
+    var unseenBefore = store.unseen.length;
+    if (!preview && entries.some(function (e) { return /^(italy|rome)$/.test(norm(e.text)); })) unlock("rome", true);
+    if (game.status === "playing") checkAwards();
 
     var anyBlue = entries.some(function (e) { return turn[e.slot.id].result === "blue"; });
     if (game.solved.length === slots.length) finish("won");
@@ -464,6 +475,11 @@
     render();
     var first = $("guessRows").querySelector("input");
     if (first) first.focus();
+    // a rosette earned mid-game gets its own toast once the turn message has shown
+    if (game.status === "playing" && store.unseen.length > unseenBefore) {
+      var newest = store.unseen[store.unseen.length - 1];
+      setTimeout(function () { toast("Rosette unlocked: " + rosetteTitle(newest), 2600); }, 1400);
+    }
   }
 
   function shake() {
@@ -490,6 +506,7 @@
         st.streak = 0;
       }
     }
+    checkAwards();
     setTimeout(function () { openStats(); }, status === "won" ? 1100 : 1400);
   }
 
@@ -556,6 +573,7 @@
       return '<div><div class="num"><span class="dot ' + c[0] + '"></span>' + cols[c[0]] + '</div><div class="lbl">' + c[1] + "</div></div>";
     }).join("");
 
+    renderRosettes();
     tickCountdown();
     var d = $("statsDialog");
     if (!d.open) d.showModal();
@@ -666,12 +684,95 @@
   }
 
   function share() {
+    if (!preview) unlock("share");
+    renderRosettes();
     var text = shareText();
     if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
       navigator.share({ text: text }).catch(function () {});
     } else {
       copy(text, "Copied to clipboard");
     }
+  }
+
+  // ---------- Rosettes ----------
+  // Titles only: how each one is earned is deliberately never shown.
+  var ROSETTES = [
+    { id: "played1", title: "Venn First I Played" },
+    { id: "won", title: "Venn First I Won" },
+    { id: "won4", title: "Venn It Rains It Fours" },
+    { id: "green", title: "Venn One Knows" },
+    { id: "share", title: "Venny Was A Friend Of Mine" },
+    { id: "won2", title: "Van Deux Venn" },
+    { id: "rome", title: "Venn In Rome" },
+    { id: "won3", title: "Venn Three\u2019s A Crowd" },
+    { id: "won1", title: "Venni Vidi Vici" },
+    { id: "done20", title: "Venn Ever, Wherever" },
+    { id: "corner", title: "Why Is That In The Corner Venn?" }
+  ];
+  var ROSETTE_COLOURS = ["#38618C", "#FA7921", "#D30C7B", "#A2AD91", "#5C573E"];
+
+  function rosetteTitle(id) {
+    for (var i = 0; i < ROSETTES.length; i++) if (ROSETTES[i].id === id) return ROSETTES[i].title;
+    return id;
+  }
+
+  function unlock(id, quiet) {
+    if (store.awards[id]) return;
+    store.awards[id] = Date.now();
+    store.unseen.push(id);
+    save();
+    if (!quiet && !document.querySelector("dialog[open]")) toast("Rosette unlocked: " + rosetteTitle(id), 2600);
+  }
+
+  // Awards that follow from saved games (daily and Venns of the Past, never previews).
+  function checkAwards() {
+    if (preview) return;
+    var finished = 0;
+    [store.games, store.practice].forEach(function (set) {
+      Object.keys(set).forEach(function (date) {
+        var g = set[date];
+        if (!g || !g.turns) return;
+        if (g.turns.some(function (t) { return Object.keys(t).some(function (k) { return t[k] && t[k].result === "green"; }); })) unlock("green", true);
+        if (g.turns.some(function (t) { return Object.keys(t).some(function (k) { return t[k] && /^(italy|rome)$/.test(norm(t[k].text)); }); })) unlock("rome", true);
+        if (g.status === "playing") return;
+        finished++;
+        if (g.status === "won") {
+          var n = g.turns.length;
+          if (n <= 5) unlock("won", true);
+          if (n <= 4 && n >= 1) unlock("won" + n, true);
+        }
+      });
+    });
+    if (finished >= 1) unlock("played1", true);
+    if (finished >= 20) unlock("done20", true);
+  }
+
+  function rosetteSvg(colour) {
+    // scalloped badge with two ribbon tails
+    var pts = [], n = 14;
+    for (var i = 0; i < n * 2; i++) {
+      var r = i % 2 ? 19 : 23, a = Math.PI * i / n;
+      pts.push((26 + r * Math.cos(a)).toFixed(1) + "," + (24 + r * Math.sin(a)).toFixed(1));
+    }
+    return '<svg viewBox="0 0 52 64" aria-hidden="true">' +
+      '<path d="M17 36 L11 62 L19 56 L24 63 L27 40 Z" fill="' + colour + '" opacity="0.85"/>' +
+      '<path d="M35 36 L41 62 L33 56 L28 63 L25 40 Z" fill="' + colour + '" opacity="0.7"/>' +
+      '<polygon points="' + pts.join(" ") + '" fill="' + colour + '" stroke="var(--ink)" stroke-width="1.2" stroke-linejoin="round"/>' +
+      '<circle cx="26" cy="24" r="13" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"/>' +
+      '<circle cx="22" cy="24" r="6" fill="' + colour + '" fill-opacity="0.55"/><circle cx="30" cy="24" r="6" fill="' + colour + '" fill-opacity="0.55"/>' +
+      "</svg>";
+  }
+
+  function renderRosettes() {
+    var got = 0;
+    $("rosettes").innerHTML = ROSETTES.map(function (r, i) {
+      var have = !!store.awards[r.id];
+      if (have) got++;
+      var fresh = store.unseen.indexOf(r.id) >= 0;
+      return '<li class="' + (have ? "unlocked" : "locked") + (fresh ? " new" : "") + '">' +
+        rosetteSvg(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length]) + '<span class="rtitle">' + esc(r.title) + "</span></li>";
+    }).join("");
+    $("rosetteCount").textContent = "· " + got + " of " + ROSETTES.length;
   }
 
   // ---------- Venns of the Past ----------
@@ -703,7 +804,7 @@
 
   // ---------- backup ----------
   function exportCode() {
-    var json = JSON.stringify({ v: 1, stats: store.stats, games: store.games, practice: store.practice });
+    var json = JSON.stringify({ v: 1, stats: store.stats, games: store.games, practice: store.practice, awards: store.awards });
     var code = btoa(unescape(encodeURIComponent(json)));
     copy(code, "Code copied. Paste it on your other device.");
   }
@@ -718,6 +819,7 @@
       store.stats = Object.assign(defaultStore().stats, data.stats);
       store.games = data.games || {};
       store.practice = data.practice || {};
+      store.awards = data.awards || {};
       store.seenHelp = true;
       preview = false;
       save();
@@ -741,6 +843,13 @@
   });
   $("helpBtn").onclick = function () { $("helpDialog").showModal(); };
   $("pastBtn").onclick = openPast;
+  // the "CORNER" drawing: unlocks a rosette and switches to the plain look
+  $("cornerCircle").onclick = function () {
+    if (!preview) unlock("corner", true);
+    var p3 = new URLSearchParams(location.search);
+    p3.set("drawn", "0");
+    location.search = p3.toString();
+  };
   $("pastLink").onclick = function () { $("statsDialog").close(); openPast(); };
   $("statsBtn").onclick = openStats;
   $("resultBtn").onclick = openStats;
@@ -758,6 +867,7 @@
     });
     d.addEventListener("close", function () {
       if (d.id === "helpDialog" && !store.seenHelp) { store.seenHelp = true; save(); }
+      if (d.id === "statsDialog" && store.unseen.length) { store.unseen = []; save(); }
       var first = $("guessRows").querySelector("input");
       if (first) first.focus();
     });
@@ -765,6 +875,14 @@
 
   renderMeta();
   render();
+  checkAwards();
+  if (store.unseen.length && !preview) {
+    setTimeout(function () {
+      if (document.querySelector("dialog[open]")) return;
+      toast(store.unseen.length === 1 ? "Rosette unlocked: " + rosetteTitle(store.unseen[0]) :
+        store.unseen.length + " new rosettes: see your stats", 2600);
+    }, 400);
+  }
 
   if (!store.seenHelp && !preview) {
     $("helpDialog").showModal();

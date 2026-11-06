@@ -14,9 +14,9 @@
 <body>
   <!-- hand-drawn corner decorations (drawn style only) -->
   <img class="corner corner-tl" src="img/drawn/corner-tl.png" alt="" aria-hidden="true">
-  <img class="corner corner-tr" src="img/drawn/corner-br.png" alt="" aria-hidden="true">
+  <img class="corner corner-tr" src="img/drawn/corner-tr.png" alt="" aria-hidden="true">
   <img class="corner corner-bl" src="img/drawn/corner-bl.png" alt="" aria-hidden="true">
-  <img class="corner corner-br" src="img/drawn/corner-tr.png" alt="" aria-hidden="true">
+  <img class="corner corner-br" id="cornerCircle" src="img/drawn/corner-br.png" alt="">
   <header class="top">
     <div class="hgroup">
     <button class="icon-btn" id="helpBtn" aria-label="How to play">
@@ -104,6 +104,8 @@
     <div class="dist" id="distGraph"></div>
     <h3>Every guess so far</h3>
     <div class="stats three" id="colourTotals"></div>
+    <h3>Rosettes <span class="rosette-count" id="rosetteCount"></span></h3>
+    <ul class="rosettes" id="rosettes"></ul>
     <div class="next" id="nextPuzzle"></div>
     <button type="button" class="past-link" id="pastLink">Play Venns of the Past</button>
     <details class="backup">
