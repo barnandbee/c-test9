@@ -59,3 +59,7 @@ in `js/puzzles.js`. Adding `?drawn=0` to the URL shows the plain look without
 changing anything. Three-circle (mega) diagrams are still drawn by code.
 
 Circle colours rotate puzzle by puzzle through `colourSets` in `js/puzzles.js`.
+
+Corner decorations (`img/drawn/corner-*.png`), the chain-of-circles divider
+(`chain.png`) and the pie-chart circle (`pie-outline.png`, `pie-mask.png`) are
+also cut from drawings, and only show in the hand-drawn style.

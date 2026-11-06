@@ -312,6 +312,7 @@
         (SITE.maker.logo ? '<img src="' + esc(SITE.maker.logo) + '" alt="" width="32" height="32">' : "") +
         "Made by " + esc(SITE.maker.name) + "</div>");
     }
+    if (DRAWN) foot.unshift('<div class="chain-divider" role="separator"></div>');
     $("footer").innerHTML = foot.join("");
     $("footer").hidden = !foot.length;
   }
@@ -518,7 +519,8 @@
           (puzzle.note ? "<div>" + esc(puzzle.note) + "</div>" : "") +
           (puzzle.source ? '<div class="source">Source: ' + esc(puzzle.source) + "</div>" : "") + "</div>";
       }
-      h += '<button class="primary share-btn" id="shareBtn" type="button">Share result</button><hr class="sep">';
+      h += '<button class="primary share-btn" id="shareBtn" type="button">Share result</button>' +
+        (DRAWN ? '<div class="chain-divider" role="separator"></div>' : '<hr class="sep">');
       rb.innerHTML = h;
       $("shareBtn").onclick = share;
     } else {
@@ -603,10 +605,10 @@
     }).join("") + "</ul>" + (total ? "" : '<p class="pie-note">Your results will appear here.</p>');
   }
 
-  // The same pie, cut to the shape of the left circle of the hand-drawn Venn
+  // The same pie, cut to the shape of the hand-drawn circle
   // (img/drawn/pie-mask.png) with the drawn line on top (pie-outline.png).
   function drawnPie(rows, total) {
-    var W = 673, H = 734, CX = 340, CY = 366, R = 700;
+    var W = 474, H = 468, CX = 234, CY = 235, R = 500; // img/drawn/pie-outline.png
     var colour = function (r, i) { return r[0] === "X" ? "#b9b2aa" : PIE_COLOURS[i % PIE_COLOURS.length]; };
     var svg = '<svg viewBox="0 0 ' + W + " " + H + '" class="pie-fill" aria-hidden="true">';
     var angle = -Math.PI / 2;

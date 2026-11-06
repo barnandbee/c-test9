@@ -521,7 +521,7 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .pie-legend li.now { font-weight: 700; }
 .pie-legend .sw { width: 12px; height: 12px; border-radius: 50%; flex: none; }
 .pie-legend .cnt { margin-left: auto; font-variant-numeric: tabular-nums; }
-.pie-wrap { position: relative; width: 100%; aspect-ratio: 673 / 734; }
+.pie-wrap { position: relative; width: 100%; aspect-ratio: 474 / 468; }
 .pie-wrap > * { position: absolute; inset: 0; width: 100%; height: 100%; }
 .pie-fill {
   -webkit-mask: url(../img/drawn/pie-mask.png) center / 100% 100% no-repeat;
@@ -559,3 +559,40 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
     radial-gradient(circle at 27px 13px, color-mix(in srgb, var(--b) 55%, transparent) 11px, transparent 12px);
 }
 .preview-banner a { color: inherit; font-weight: 700; }
+
+/* Hand-drawn corner decorations and chain-of-circles divider */
+.corner, .chain-divider { display: none; }
+.drawn .corner {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  height: auto;
+  --k: 0.24; /* screen px per px of the scanned drawing */
+}
+.drawn body { position: relative; padding-top: 34px; padding-bottom: 64px; }
+.drawn .corner-tl { top: 6px; left: 6px; width: calc(var(--k) * 209px); }
+.drawn .corner-tr { top: 6px; right: 6px; width: calc(var(--k) * 208px); }
+.drawn .corner-bl { bottom: 6px; left: 6px; width: calc(var(--k) * 258px); }
+.drawn .corner-br { bottom: 6px; right: 6px; width: calc(var(--k) * 252px); }
+.drawn .top, .drawn main, .drawn .foot { position: relative; z-index: 1; }
+/* wide screens: corners pinned to the window, in the margins beside the game */
+@media (min-width: 900px) {
+  .drawn body { padding-top: 0; padding-bottom: 0; }
+  .drawn .corner { position: fixed; --k: 0.5; }
+  .drawn .corner-tl, .drawn .corner-tr { top: 16px; }
+  .drawn .corner-tl, .drawn .corner-bl { left: 16px; }
+  .drawn .corner-tr, .drawn .corner-br { right: 16px; }
+  .drawn .corner-bl, .drawn .corner-br { bottom: 16px; }
+  /* keep the header buttons in the game column, clear of the corner drawings */
+  .drawn .top { max-width: 560px; margin: 0 auto; width: 100%; }
+}
+
+.drawn .chain-divider {
+  display: block;
+  height: 34px;
+  margin: 16px auto;
+  background: url(../img/drawn/chain.png) center / contain no-repeat;
+}
+.drawn .maker { border-top: none; padding-top: 0; margin-top: 0; }
+.drawn .foot .chain-divider { max-width: 360px; height: 30px; margin: 0 auto 14px; }
