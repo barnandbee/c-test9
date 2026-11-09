@@ -765,6 +765,13 @@
       "</svg>";
   }
 
+  // the hand-drawn rosette (img/drawn/rosette.png), coloured in through three masks
+  function drawnRosette(colour) {
+    return '<span class="ros" style="--rc:' + colour + '" aria-hidden="true">' +
+      '<i class="ros-ribbon"></i><i class="ros-ring"></i><i class="ros-inner"></i>' +
+      '<img src="img/drawn/rosette.png" alt=""></span>';
+  }
+
   function renderRosettes() {
     var got = 0;
     $("rosettes").innerHTML = ROSETTES.map(function (r, i) {
@@ -772,7 +779,8 @@
       if (have) got++;
       var fresh = store.unseen.indexOf(r.id) >= 0;
       return '<li class="' + (have ? "unlocked" : "locked") + (fresh ? " new" : "") + '">' +
-        rosetteSvg(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length]) + '<span class="rtitle">' + esc(r.title) + "</span></li>";
+        (DRAWN ? drawnRosette(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length]) : rosetteSvg(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length])) +
+        '<span class="rtitle">' + esc(r.title) + "</span></li>";
     }).join("");
     $("rosetteCount").textContent = "· " + got + " of " + ROSETTES.length;
   }

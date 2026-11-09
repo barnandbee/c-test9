@@ -612,7 +612,47 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .rosettes li { text-align: center; font-size: 0.85rem; line-height: 1.2; }
 .rosettes svg { display: block; width: 52px; height: 64px; margin: 0 auto 4px; }
 .rosettes li.locked { color: var(--muted); }
-.rosettes li.locked svg { filter: grayscale(1); opacity: 0.3; }
-.rosettes li.new svg { animation: pop 0.6s cubic-bezier(.2,1.6,.4,1); }
+.rosettes li.locked svg, .rosettes li.locked .ros { filter: grayscale(1); opacity: 0.3; }
+.rosettes li.new svg, .rosettes li.new .ros { animation: pop 0.6s cubic-bezier(.2,1.6,.4,1); }
 .rosettes li.new .rtitle::after { content: " \2022 new"; color: var(--good); font-weight: 700; }
 .plain-link { display: block; color: var(--muted); }
+
+/* Hand-drawn header icons */
+.icon-btn .drawn-icon { display: none; }
+.drawn .icon-btn svg { display: none; }
+.drawn .icon-btn .drawn-icon { display: block; height: 30px; width: auto; }
+.drawn .icon-btn:hover { background: color-mix(in srgb, var(--line) 60%, transparent); }
+
+/* Hand-drawn Guess button: the shaded oblong */
+.drawn .guess-form button {
+  height: 70px;
+  margin-top: 6px;
+  border-radius: 0;
+  background: url(../img/drawn/button.png) center / 100% 100% no-repeat;
+  color: var(--ink);
+  font-size: 1.2rem;
+}
+.drawn .guess-form button:hover:not(:disabled) { background-color: transparent; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--c2) 70%, transparent)); }
+.drawn .guess-form button:disabled { opacity: 0.4; }
+
+/* Pen oval drawn round the Bass Moultapps credit */
+.drawn .made-by, .drawn .maker { position: relative; padding: 16px 30px; }
+.drawn .made-by::after, .drawn .maker::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url(../img/drawn/oval.png) center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+.drawn .maker { padding: 22px 34px; margin-top: 4px; }
+
+/* Hand-drawn rosettes */
+.rosettes .ros { position: relative; display: block; width: 44px; height: 71px; margin: 0 auto 4px; }
+.ros > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ros i {
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.ros .ros-ring { background: var(--rc); -webkit-mask-image: url(../img/drawn/ros-ring.png); mask-image: url(../img/drawn/ros-ring.png); }
+.ros .ros-ribbon { background: color-mix(in srgb, var(--rc) 75%, #fff); -webkit-mask-image: url(../img/drawn/ros-ribbon.png); mask-image: url(../img/drawn/ros-ribbon.png); }
+.ros .ros-inner { background: color-mix(in srgb, var(--rc) 25%, #fff); -webkit-mask-image: url(../img/drawn/ros-inner.png); mask-image: url(../img/drawn/ros-inner.png); }
