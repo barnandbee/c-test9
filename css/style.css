@@ -665,3 +665,15 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .ros.v3 .ros-ring { -webkit-mask-image: url(../img/drawn/ros3-ring.png); mask-image: url(../img/drawn/ros3-ring.png); }
 .ros.v3 .ros-ribbon { -webkit-mask-image: url(../img/drawn/ros3-ribbon.png); mask-image: url(../img/drawn/ros3-ribbon.png); }
 .ros.v3 .ros-inner { -webkit-mask-image: url(../img/drawn/ros3-inner.png); mask-image: url(../img/drawn/ros3-inner.png); }
+
+/* Guess button coloured in with today's two circle colours */
+.drawn .guess-form button { position: relative; isolation: isolate; }
+.drawn .guess-form button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c0) 55%, transparent), color-mix(in srgb, var(--c1) 55%, transparent));
+  -webkit-mask: url(../img/drawn/button-mask.png) center / 100% 100% no-repeat;
+  mask: url(../img/drawn/button-mask.png) center / 100% 100% no-repeat;
+}
