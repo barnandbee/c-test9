@@ -666,14 +666,37 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .ros.v3 .ros-ribbon { -webkit-mask-image: url(../img/drawn/ros3-ribbon.png); mask-image: url(../img/drawn/ros3-ribbon.png); }
 .ros.v3 .ros-inner { -webkit-mask-image: url(../img/drawn/ros3-inner.png); mask-image: url(../img/drawn/ros3-inner.png); }
 
-/* Guess button coloured in with today's two circle colours */
-.drawn .guess-form button { position: relative; isolation: isolate; }
-.drawn .guess-form button::before {
+/* Guess button: inside in one circle colour, the hatched band in the other,
+   with the pen drawing (on the label span) over both */
+.drawn .guess-form button { position: relative; isolation: isolate; background: none; }
+.drawn .guess-form button::before, .drawn .guess-form button::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--c0) 55%, transparent), color-mix(in srgb, var(--c1) 55%, transparent));
-  -webkit-mask: url(../img/drawn/button-mask.png) center / 100% 100% no-repeat;
-  mask: url(../img/drawn/button-mask.png) center / 100% 100% no-repeat;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
 }
+.drawn .guess-form button::before {
+  background: color-mix(in srgb, var(--c1) 70%, transparent);
+  -webkit-mask-image: url(../img/drawn/button-band.png); mask-image: url(../img/drawn/button-band.png);
+}
+.drawn .guess-form button::after {
+  background: color-mix(in srgb, var(--c0) 40%, transparent);
+  -webkit-mask-image: url(../img/drawn/button-mask.png); mask-image: url(../img/drawn/button-mask.png);
+}
+.drawn .gb-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url(../img/drawn/button.png) center / 100% 100% no-repeat;
+}
+
+/* little colour Venn on the front of each drawn rosette */
+.ros .ros-venn { position: absolute; inset: auto; height: auto; transform: translate(-50%, -50%); overflow: visible; }
+.ros .ros-venn circle { fill: var(--rc); fill-opacity: 0.55; stroke: var(--ink); stroke-width: 0.8; }
+.ros.v1 .ros-venn { left: 48.2%; top: 34.5%; width: 34%; }
+.ros.v2 .ros-venn { left: 46.7%; top: 32%; width: 38%; }
+.ros.v3 .ros-venn { left: 42.5%; top: 29.9%; width: 38%; }

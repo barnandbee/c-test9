@@ -393,8 +393,9 @@
     var open = slots.filter(function (s) { return !isSolved(s.id); }).length;
     var left = maxTurns - game.turns.length;
     $("guessBtn").disabled = over;
-    $("guessBtn").textContent = over ? (game.status === "won" ? "Solved!" : "Out of turns") :
-      (open > 2 ? "Guess all" : open === 2 ? "Guess both" : "Guess") + " · " + left + " turn" + (left === 1 ? "" : "s") + " left";
+    // the label sits in a span so the drawn button's pen lines can go over its colour fills
+    $("guessBtn").innerHTML = '<span class="gb-label">' + esc(over ? (game.status === "won" ? "Solved!" : "Out of turns") :
+      (open > 2 ? "Guess all" : open === 2 ? "Guess both" : "Guess") + " · " + left + " turn" + (left === 1 ? "" : "s") + " left") + "</span>";
     var last = $("guessRows").querySelectorAll("input");
     if (last.length) last[last.length - 1].setAttribute("enterkeyhint", "go");
   }
@@ -771,7 +772,8 @@
     var v = i % 3 + 1;
     return '<span class="ros v' + v + '" style="--rc:' + colour + '" aria-hidden="true">' +
       '<i class="ros-ribbon"></i><i class="ros-ring"></i><i class="ros-inner"></i>' +
-      '<img src="img/drawn/rosette' + v + '.png" alt=""></span>';
+      '<img src="img/drawn/rosette' + v + '.png" alt="">' +
+      '<svg class="ros-venn" viewBox="0 0 26 16"><circle cx="9" cy="8" r="6.5"/><circle cx="17" cy="8" r="6.5"/></svg></span>';
   }
 
   function renderRosettes() {
