@@ -766,10 +766,12 @@
   }
 
   // the hand-drawn rosette (img/drawn/rosette.png), coloured in through three masks
-  function drawnRosette(colour) {
-    return '<span class="ros" style="--rc:' + colour + '" aria-hidden="true">' +
+  // three different drawn rosettes, taken in turn
+  function drawnRosette(colour, i) {
+    var v = i % 3 + 1;
+    return '<span class="ros v' + v + '" style="--rc:' + colour + '" aria-hidden="true">' +
       '<i class="ros-ribbon"></i><i class="ros-ring"></i><i class="ros-inner"></i>' +
-      '<img src="img/drawn/rosette.png" alt=""></span>';
+      '<img src="img/drawn/rosette' + v + '.png" alt=""></span>';
   }
 
   function renderRosettes() {
@@ -779,7 +781,7 @@
       if (have) got++;
       var fresh = store.unseen.indexOf(r.id) >= 0;
       return '<li class="' + (have ? "unlocked" : "locked") + (fresh ? " new" : "") + '">' +
-        (DRAWN ? drawnRosette(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length]) : rosetteSvg(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length])) +
+        (DRAWN ? drawnRosette(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length], i) : rosetteSvg(ROSETTE_COLOURS[i % ROSETTE_COLOURS.length])) +
         '<span class="rtitle">' + esc(r.title) + "</span></li>";
     }).join("");
     $("rosetteCount").textContent = "· " + got + " of " + ROSETTES.length;

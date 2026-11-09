@@ -653,6 +653,15 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
   -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
 }
-.ros .ros-ring { background: var(--rc); -webkit-mask-image: url(../img/drawn/ros-ring.png); mask-image: url(../img/drawn/ros-ring.png); }
-.ros .ros-ribbon { background: color-mix(in srgb, var(--rc) 75%, #fff); -webkit-mask-image: url(../img/drawn/ros-ribbon.png); mask-image: url(../img/drawn/ros-ribbon.png); }
-.ros .ros-inner { background: color-mix(in srgb, var(--rc) 25%, #fff); -webkit-mask-image: url(../img/drawn/ros-inner.png); mask-image: url(../img/drawn/ros-inner.png); }
+.ros .ros-ring { background: var(--rc); }
+.ros .ros-ribbon { background: color-mix(in srgb, var(--rc) 75%, #fff); }
+.ros .ros-inner { background: color-mix(in srgb, var(--rc) 25%, #fff); }
+.ros.v1 .ros-ring { -webkit-mask-image: url(../img/drawn/ros1-ring.png); mask-image: url(../img/drawn/ros1-ring.png); }
+.ros.v1 .ros-ribbon { -webkit-mask-image: url(../img/drawn/ros1-ribbon.png); mask-image: url(../img/drawn/ros1-ribbon.png); }
+.ros.v1 .ros-inner { -webkit-mask-image: url(../img/drawn/ros1-inner.png); mask-image: url(../img/drawn/ros1-inner.png); }
+.ros.v2 .ros-ring { -webkit-mask-image: url(../img/drawn/ros2-ring.png); mask-image: url(../img/drawn/ros2-ring.png); }
+.ros.v2 .ros-ribbon { -webkit-mask-image: url(../img/drawn/ros2-ribbon.png); mask-image: url(../img/drawn/ros2-ribbon.png); }
+.ros.v2 .ros-inner { -webkit-mask-image: url(../img/drawn/ros2-inner.png); mask-image: url(../img/drawn/ros2-inner.png); }
+.ros.v3 .ros-ring { -webkit-mask-image: url(../img/drawn/ros3-ring.png); mask-image: url(../img/drawn/ros3-ring.png); }
+.ros.v3 .ros-ribbon { -webkit-mask-image: url(../img/drawn/ros3-ribbon.png); mask-image: url(../img/drawn/ros3-ribbon.png); }
+.ros.v3 .ros-inner { -webkit-mask-image: url(../img/drawn/ros3-inner.png); mask-image: url(../img/drawn/ros3-inner.png); }
