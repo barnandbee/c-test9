@@ -491,7 +491,8 @@ dialog .primary { display: block; width: 100%; margin-top: 14px; }
 }
 .drawn .grow:nth-of-type(2n) input, .drawn .grow:nth-of-type(2n) .locked { background-image: url(../img/drawn/bar2.png); }
 .drawn .grow .locked { padding-left: 18px; }
-.drawn .grow input:focus { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--c2) 80%, transparent)); }
+/* focus: no glow (a filter blurred the typed text); the drawn box stays as it is */
+.drawn .grow input:focus { filter: none; outline: none; }
 .drawn .grow input::-webkit-calendar-picker-indicator { display: none !important; }
 .drawn .guess-form button {
   border-radius: 12px 4px 14px 6px / 6px 14px 4px 12px;
