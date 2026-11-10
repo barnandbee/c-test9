@@ -114,6 +114,21 @@ window.VENN_PUZZLES = [
       { name: "UK", url: "https://www.worldometers.info/population/largest-cities-in-uk/" },
       { name: "Germany", url: "https://www.worldometers.info/population/largest-cities-in-germany/" }
     ]
+  },
+  {
+    date: "2026-11-11",
+    type: "classic",
+    instruction: "Name the country in each circle.",
+    suggest: "countries",
+    circles: [{}, {}],
+    regions: {
+      A:  { slot: { hint: "3rd", answer: "Colombia", accept: ["colombia"] } },
+      B:  { slot: { hint: "4th", answer: "Spain", accept: ["spain"] } },
+      AB: { text: "Spanish-speaking countries by total population" }
+    },
+    note: "Was curious about this one. Also figuring out that countries/geography is probably the way to go with these Venns rather than, say, the highest grossing films of Nicolas Cage. Or maybe not.",
+    source: "World Population Review",
+    sourceUrl: "https://worldpopulationreview.com/country-rankings/spanish-speaking-countries"
   }
 ];
 
