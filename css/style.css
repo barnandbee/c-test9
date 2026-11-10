@@ -701,3 +701,8 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .ros.v1 .ros-venn { left: 48.2%; top: 34.5%; width: 34%; }
 .ros.v2 .ros-venn { left: 46.7%; top: 32%; width: 38%; }
 .ros.v3 .ros-venn { left: 42.5%; top: 29.9%; width: 38%; }
+
+/* Sentence-with-a-gap answers (reverse days) */
+.region.slot.template .answer { font-size: clamp(12px, 3.9cqw, 19px); font-weight: 700; line-height: 1.25; }
+.region.slot.template .gap { font-size: 1.25em; }
+.region.slot.template .gap .blank { min-width: 1.4em; }

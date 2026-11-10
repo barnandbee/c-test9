@@ -31,6 +31,12 @@
 //   note:        the setter's story, shown when the round ends
 //   source:      where the data came from (shown with the note)
 //   sourceUrl:   optional link for the source
+//   sources:     several links instead: [{ name: "UK", url: "https://..." }, ...]
+//
+// Number answers (good for reverse days): give the slot input: "number" and
+// it takes "10", "10th", "ten" or "tenth" alike, and refuses non-numbers
+// without using a turn. Add template: "The ___th biggest cities…" to show the
+// connection as a sentence with the answer in the gap.
 //   sponsor:     optional { name, url } shown under the puzzle
 // =====================================================================
 
@@ -86,6 +92,27 @@ window.VENN_PUZZLES = [
     note: "I was thinking earlier that you don't see a lot of 'U's lurking around. I don't know why I was thinking this, but 'U' doesn't even appear in the top ten. I admire whoever did the maths to work this out, and look forward to struggling with having 2 'U's in Scrabble (not to be confused with U2 in Scrabble, a scene from some sort of teatime fever dream).",
     source: "Cornell Math Cryptography Guide",
     sourceUrl: "https://pi.math.cornell.edu/~mec/2003-2004/cryptography/subs/frequencies.html"
+  },
+  {
+    date: "2026-11-10",
+    type: "reverse",
+    instruction: "What links the two cities? Fill in the number.",
+    circles: [{}, {}],
+    regions: {
+      A:  { text: "Bristol", hint: "United Kingdom" },
+      B:  { text: "Bremen", hint: "Germany" },
+      AB: { slot: {
+        hint: "#",
+        input: "number",
+        answer: "10",
+        template: "The ___th biggest cities by population in their respective countries"
+      } }
+    },
+    source: "National data collated by Worldometers",
+    sources: [
+      { name: "UK", url: "https://www.worldometers.info/population/largest-cities-in-uk/" },
+      { name: "Germany", url: "https://www.worldometers.info/population/largest-cities-in-germany/" }
+    ]
   }
 ];
 

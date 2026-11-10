@@ -105,15 +105,31 @@
     if (r.slot) slots.push(Object.assign({ id: key }, r.slot));
   });
 
-  function canon(s) {
+  // Number answers (input: "number"): "10", "10th", "ten" and "tenth" all read as 10.
+  var NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+  var ORD_WORDS = ["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth",
+    "eleventh", "twelfth", "thirteenth", "fourteenth", "fifteenth", "sixteenth", "seventeenth", "eighteenth", "nineteenth", "twentieth"];
+  function toNumber(s) {
+    var n = norm(s).replace(/^(no|number|the)\s+/, "");
+    var m = n.match(/^(\d+)\s*(st|nd|rd|th)?$/);
+    if (m) return parseInt(m[1], 10);
+    var i = NUM_WORDS.indexOf(n);
+    if (i < 0) i = ORD_WORDS.indexOf(n);
+    return i < 0 ? null : i;
+  }
+  function isNumberSlot(slot) { return slot && slot.input === "number"; }
+
+  function canon(s, slot) {
+    if (isNumberSlot(slot)) { var num = toNumber(s); return num === null ? norm(s) : "#" + num; }
     var n = norm(s);
     return useCountries && COUNTRY_CANON[n] ? COUNTRY_CANON[n] : n;
   }
 
   function matches(slot, guess) {
-    var g = canon(guess);
+    var g = canon(guess, slot);
     var accepted = (slot.accept && slot.accept.length ? slot.accept : [slot.answer]).concat([slot.answer]);
-    if (accepted.some(function (a) { return canon(a) === g; })) return true;
+    if (accepted.some(function (a) { return canon(a, slot) === g; })) return true;
     if (slot.keywords) {
       var padded = " " + g + " ";
       return slot.keywords.some(function (group) {
@@ -355,8 +371,14 @@
         var res = lastResult(key);
         var cls = "region slot" + (solved ? " solved" : over ? " missed" : "") + (justSolved.indexOf(key) >= 0 ? " flash" : "");
         var ans = solved || over ? esc(r.slot.answer) : '<span class="blank">?</span>';
+        // a sentence with a gap, e.g. "The ___th biggest cities…": the answer goes in the gap
+        if (r.slot.template) {
+          var parts = r.slot.template.split("___");
+          ans = esc(parts[0]) + '<span class="gap">' + ans + "</span>" + esc(parts.slice(1).join("___"));
+          cls += " template";
+        }
         html += '<div class="' + cls + '" style="' + style + '">' +
-          (r.slot.hint ? '<div class="hint">' + esc(r.slot.hint) + "</div>" : "") +
+          (r.slot.hint && !r.slot.template ? '<div class="hint">' + esc(r.slot.hint) + "</div>" : "") +
           '<div class="answer">' + ans + "</div>" +
           '<span class="dot ' + res + '" title="' + esc(resultText(res)) + '"></span></div>';
       } else {
@@ -381,7 +403,8 @@
       var res = lastResult(s.id);
       var field = solved || over
         ? '<div class="locked">' + (solved ? esc(s.answer) : "&nbsp;") + "</div>"
-        : '<input id="g-' + s.id + '" data-slot="' + s.id + '" type="text" placeholder="' + esc(slotName(s.id)) + '"' +
+        : '<input id="g-' + s.id + '" data-slot="' + s.id + '" type="text" placeholder="' + esc(isNumberSlot(s) ? "Type a number" : slotName(s.id)) + '"' +
+          (isNumberSlot(s) ? ' inputmode="numeric"' : "") +
           ' aria-label="Guess for ' + esc(slotName(s.id)) + (s.hint ? ", clue " + esc(s.hint) : "") + '"' +
           (useCountries ? ' list="suggestions"' : "") + ' autocapitalize="words" spellcheck="false" enterkeyhint="next">';
       return '<div class="grow' + (solved ? " solved" : "") + '">' +
@@ -443,13 +466,16 @@
     var empty = entries.filter(function (e) { return !canon(e.text); })[0];
     if (empty) return reject(empty.input, open.length > 1 ? "Make a guess for every circle" : "Type a guess");
 
+    var notNum = entries.filter(function (e) { return isNumberSlot(e.slot) && toNumber(e.text) === null; })[0];
+    if (notNum) return reject(notNum.input, "Type a number");
+
     if (useCountries && puzzle.strict !== false) {
       var bad = entries.filter(function (e) { return !COUNTRY_CANON[norm(e.text)]; })[0];
       if (bad) return reject(bad.input, "“" + bad.text + "” isn't on the country list");
     }
 
     var repeat = entries.filter(function (e) {
-      return game.turns.some(function (t) { return t[e.slot.id] && canon(t[e.slot.id].text) === canon(e.text); });
+      return game.turns.some(function (t) { return t[e.slot.id] && canon(t[e.slot.id].text, e.slot) === canon(e.text, e.slot); });
     })[0];
     if (repeat) return reject(repeat.input, "You've already tried " + repeat.text + " there");
 
@@ -527,17 +553,22 @@
     var rb = $("resultBlock");
     if (game.status !== "playing") {
       var won = game.status === "won";
-      var answers = slots.map(function (s) { return esc(s.answer); }).join(" &middot; ");
+      var answers = slots.map(function (s) {
+        return s.template ? esc(s.template.replace("___", s.answer)) : esc(s.answer);
+      }).join(" &middot; ");
       var h = '<div class="result-head">' +
         "<div>" + (won ? "Solved" : past ? "Not this time" : "Better luck tomorrow") + "</div>" +
         '<div class="big">' + (won ? game.turns.length + " / " + maxTurns + " turns" : "Out of turns") + "</div>" +
         '<div class="answers">' + answers + "</div></div>";
       if (puzzle.note || puzzle.source) {
-        h += '<div class="note"><div class="label">The setter\'s story</div>' +
+        h += '<div class="note">' + (puzzle.note ? '<div class="label">The setter\'s story</div>' : "") +
           (puzzle.note ? "<div>" + esc(puzzle.note) + "</div>" : "") +
           (puzzle.source ? '<div class="source">Source: ' + (puzzle.sourceUrl
             ? '<a href="' + esc(puzzle.sourceUrl) + '" target="_blank" rel="noopener">' + esc(puzzle.source) + "</a>"
-            : esc(puzzle.source)) + "</div>" : "") + "</div>";
+            : esc(puzzle.source)) +
+            (puzzle.sources ? " (" + puzzle.sources.map(function (x) {
+              return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.name) + "</a>";
+            }).join(", ") + ")" : "") + "</div>" : "") + "</div>";
       }
       h += '<button class="primary share-btn" id="shareBtn" type="button">Share result</button>' +
         (DRAWN ? '<div class="chain-divider" role="separator"></div>' : '<hr class="sep">');
