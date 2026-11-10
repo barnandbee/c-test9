@@ -108,6 +108,7 @@ window.VENN_PUZZLES = [
         template: "The ___th biggest cities by population in their respective countries"
       } }
     },
+    note: "'I\u2019ve been to Bristol, but I\u2019ve never been to Bremen' sounds like a rejected lyric for a Tinie Tempah banger, but today I was just interested in sizes of cities for no real reason, and the B & B beginnings of these two in the United Kingdom and Germany caught my eye.",
     source: "National data collated by Worldometers",
     sources: [
       { name: "UK", url: "https://www.worldometers.info/population/largest-cities-in-uk/" },
