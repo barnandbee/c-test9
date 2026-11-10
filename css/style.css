@@ -778,3 +778,7 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .avatar.locked .avatar-pic { border: 2px dashed var(--line); border-radius: 10px; width: 70px; height: 74px; }
 .avatar.chosen { background: color-mix(in srgb, var(--c0) 22%, transparent); font-weight: 700; }
 .stats-avatar { width: 34px; height: auto; vertical-align: middle; margin-right: 8px; }
+
+/* several right answers */
+.result-head .also { font-size: 0.9em; margin-top: 2px; }
+.region.slot.many .answer { font-size: clamp(11px, 3.2cqw, 16px); }

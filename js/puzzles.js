@@ -38,6 +38,11 @@
 // without using a turn. Add template: "The ___th biggest cities…" to show the
 // connection as a sentence with the answer in the gap.
 //   sponsor:     optional { name, url } shown under the puzzle
+//   test:        true keeps a puzzle out of the daily run and the numbering;
+//                it shows in Venns of the Past under its date, just for fun
+//
+// Several right answers for one blank: give the slot answers: ["A", "B", ...].
+// Any one of them solves it, and the result lists the others.
 // =====================================================================
 
 window.VENN_SITE = {
@@ -129,6 +134,24 @@ window.VENN_PUZZLES = [
     note: "Was curious about this one. Also figuring out that countries/geography is probably the way to go with these Venns rather than, say, the highest grossing films of Nicolas Cage. Or maybe not.",
     source: "World Population Review",
     sourceUrl: "https://worldpopulationreview.com/country-rankings/spanish-speaking-countries"
+  },
+  {
+    // a trial of one overlap with several right answers; shows only in Venns of the Past
+    test: true,
+    date: "2026-11-01",
+    type: "classic",
+    instruction: "Name a country that belongs in the overlap.",
+    suggest: "countries",
+    circles: [{}, {}],
+    regions: {
+      A:  { text: "Top 10 cardamom importers" },
+      B:  { text: "Teams at the 2026 FIFA World Cup" },
+      AB: { slot: {
+        hint: "1 of 4",
+        answer: "Saudi Arabia",
+        answers: ["Saudi Arabia", "Jordan", "United States", "Egypt"]
+      } }
+    }
   }
 ];
 

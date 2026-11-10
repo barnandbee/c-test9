@@ -3,9 +3,11 @@
 
   var SITE = window.VENN_SITE || {};
   var NAME = SITE.name || "On The Venns";
-  var PUZZLES = (window.VENN_PUZZLES || []).slice().sort(function (a, b) {
-    return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
-  });
+  function byDate(a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
+  // test puzzles (test: true) sit in Venns of the Past only: never the daily
+  // puzzle, never numbered, never counted
+  var PUZZLES = (window.VENN_PUZZLES || []).filter(function (p) { return !p.test; }).sort(byDate);
+  var TESTS = (window.VENN_PUZZLES || []).filter(function (p) { return p.test; }).sort(byDate);
   var SAMPLES = window.VENN_SAMPLES || {};
   var STORE_KEY = "dailyvenn.v1"; // kept from the first prototype so existing streaks carry over
 
@@ -61,7 +63,13 @@
   document.documentElement.classList.toggle("drawn", DRAWN);
 
   var sampleKey = params.get("sample");
-  if (sampleKey && SAMPLES[sampleKey]) {
+  var testPuzzle = params.get("d") && TESTS.filter(function (p) { return p.date === params.get("d"); })[0];
+  var isTest = !!testPuzzle;
+  if (testPuzzle) {
+    puzzle = testPuzzle;
+    index = -1;
+    past = true;
+  } else if (sampleKey && SAMPLES[sampleKey]) {
     puzzle = SAMPLES[sampleKey];
     index = -1;
     preview = true;
@@ -128,7 +136,7 @@
 
   function matches(slot, guess) {
     var g = canon(guess, slot);
-    var accepted = (slot.accept && slot.accept.length ? slot.accept : [slot.answer]).concat([slot.answer]);
+    var accepted = (slot.accept && slot.accept.length ? slot.accept : [slot.answer]).concat([slot.answer]).concat(slot.answers || []);
     if (accepted.some(function (a) { return canon(a, slot) === g; })) return true;
     if (slot.keywords) {
       var padded = " " + g + " ";
@@ -143,6 +151,22 @@
     return false;
   }
 
+  // A slot can take any one of several right answers (answers: [...]).
+  // Once solved it shows the one the player found.
+  function allAnswers(slot) { return slot.answers && slot.answers.length ? slot.answers : [slot.answer]; }
+  function solvedLabel(slot) {
+    if (!slot.answers) return slot.answer;
+    for (var i = game.turns.length - 1; i >= 0; i--) {
+      var e = game.turns[i][slot.id];
+      if (e && e.result === "green") {
+        var g = canon(e.text, slot);
+        var hit = slot.answers.filter(function (a) { return canon(a, slot) === g; })[0];
+        return hit || e.text;
+      }
+    }
+    return slot.answers.join(" / ");
+  }
+
   // green: right answer in this circle; blue: belongs in another circle; red: neither
   function judge(slot, text) {
     if (matches(slot, text)) return "green";
@@ -152,7 +176,7 @@
 
   // What to call each circle/region, and which circle colours it sits in.
   var POS_NAMES = {
-    2: { A: "Left circle", B: "Right circle", AB: "Middle" },
+    2: { A: "Left circle", B: "Right circle", AB: "Overlap" },
     3: { A: "Top circle", B: "Bottom left", C: "Bottom right", AB: "Top-left overlap", AC: "Top-right overlap", BC: "Bottom overlap", ABC: "Centre" }
   };
   function slotName(id) {
@@ -344,7 +368,7 @@
     $("siteName").classList.toggle("reverse-flip", puzzle.type === "reverse");
     document.title = NAME;
     var type = puzzle.type || "classic";
-    var num = index >= 0 ? "#" + (index + 1) : "Sample";
+    var num = isTest ? "Test" : index >= 0 ? "#" + (index + 1) : "Sample";
     var dateTxt = "";
     if (/^\d{4}-\d{2}-\d{2}$/.test(puzzle.date)) {
       var p = puzzle.date.split("-");
@@ -356,7 +380,7 @@
     if (preview) { $("previewBanner").hidden = false; $("previewBanner").textContent = previewReason; }
     if (past) {
       $("previewBanner").hidden = false;
-      $("previewBanner").innerHTML = "A Venn of the Past, just for fun. It won't change your stats. " +
+      $("previewBanner").innerHTML = (isTest ? "A test Venn, just for fun. It won't change your stats. " : "A Venn of the Past, just for fun. It won't change your stats. ") +
         '<a href="./">Back to today\'s Venn</a>';
     }
 
@@ -430,7 +454,9 @@
         var solved = isSolved(key);
         var res = lastResult(key);
         var cls = "region slot" + (solved ? " solved" : over ? " missed" : "") + (justSolved.indexOf(key) >= 0 ? " flash" : "");
-        var ans = solved || over ? esc(r.slot.answer) : '<span class="blank">?</span>';
+        var slotObj = slots.filter(function (x) { return x.id === key; })[0];
+        var ans = solved || over ? esc(solvedLabel(slotObj)) : '<span class="blank">?</span>';
+        if (r.slot.answers && over && !solved) cls += " many";
         // a sentence with a gap, e.g. "The ___th biggest cities…": the answer goes in the gap
         if (r.slot.template) {
           var parts = r.slot.template.split("___");
@@ -462,7 +488,7 @@
       var solved = isSolved(s.id);
       var res = lastResult(s.id);
       var field = solved || over
-        ? '<div class="locked">' + (solved ? esc(s.answer) : "&nbsp;") + "</div>"
+        ? '<div class="locked">' + (solved ? esc(solvedLabel(s)) : "&nbsp;") + "</div>"
         : '<input id="g-' + s.id + '" data-slot="' + s.id + '" type="text" placeholder="' + esc(isNumberSlot(s) ? "Type a number" : slotName(s.id)) + '"' +
           (isNumberSlot(s) ? ' inputmode="numeric"' : "") +
           ' aria-label="Guess for ' + esc(slotName(s.id)) + (s.hint ? ", clue " + esc(s.hint) : "") + '"' +
@@ -601,7 +627,7 @@
   var EMOJI = { green: "🟢", blue: "🔵", red: "🔴" };
 
   function shareText() {
-    var num = index >= 0 ? "#" + (index + 1) + (past ? " (Venn of the Past)" : "") : "(sample)";
+    var num = isTest ? "(test)" : index >= 0 ? "#" + (index + 1) + (past ? " (Venn of the Past)" : "") : "(sample)";
     var score = game.status === "won" ? game.turns.length + "/" + maxTurns : "X/" + maxTurns;
     var rows = game.turns.map(function (t) {
       return slots.map(function (s) { return t[s.id] ? EMOJI[t[s.id].result] : "⬜"; }).join("");
@@ -614,7 +640,14 @@
     if (game.status !== "playing") {
       var won = game.status === "won";
       var answers = slots.map(function (s) {
-        return s.template ? esc(s.template.replace("___", s.answer)) : esc(s.answer);
+        if (s.template) return esc(s.template.replace("___", s.answer));
+        if (s.answers) {
+          var found = isSolved(s.id) ? solvedLabel(s) : null;
+          var rest = s.answers.filter(function (a) { return a !== found; });
+          return found ? esc(found) + '<div class="also">Also right: ' + esc(rest.join(", ")) + "</div>"
+            : "Any of: " + esc(s.answers.join(", "));
+        }
+        return esc(s.answer);
       }).join(" &middot; ");
       var h = '<div class="result-head">' +
         "<div>" + (won ? "Solved" : past ? "Not this time" : "Better luck tomorrow") + "</div>" +
@@ -976,8 +1009,12 @@
   // ---------- Venns of the Past ----------
   function openPast() {
     var items = [];
-    for (var i = liveIndex - 1; i >= 0; i--) {
-      var p = PUZZLES[i];
+    var list = [];
+    for (var k = liveIndex - 1; k >= 0; k--) list.push({ p: PUZZLES[k], i: k });
+    TESTS.forEach(function (t) { if (t.date <= today) list.push({ p: t, i: -1 }); });
+    list.sort(function (a, b) { return byDate(b.p, a.p); });
+    list.forEach(function (entry) {
+      var p = entry.p, i = entry.i;
       var day = store.games[p.date], fun = store.practice[p.date];
       var status = "Not played", cls = "";
       if (day && day.turns && day.status === "won") { status = "Solved in " + day.turns.length; cls = "won"; }
@@ -985,16 +1022,16 @@
       else if (fun && fun.status === "won") { status = "Solved for fun in " + fun.turns.length; cls = "won"; }
       else if (fun && fun.status === "lost") { status = "Missed (for fun)"; cls = "lost"; }
       else if (fun && fun.turns && fun.turns.length) { status = "In progress"; }
-      var c = coloursFor(p, i);
+      var c = coloursFor(p, i >= 0 ? i : 0);
       var dp = p.date.split("-");
       var dateTxt = new Date(+dp[0], +dp[1] - 1, +dp[2]).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
       var keep = DRAWN ? "" : "&drawn=0";
       items.push('<li><a href="?d=' + esc(p.date) + keep + '">' +
         '<span class="mini" style="--a:' + esc(c[0]) + ";--b:" + esc(c[1]) + '"></span>' +
-        '<span class="ptext"><span><strong>#' + (i + 1) + "</strong> · " + esc(dateTxt) +
+        '<span class="ptext"><span><strong>' + (i >= 0 ? "#" + (i + 1) : "Test") + "</strong> · " + esc(dateTxt) +
         (p.type && p.type !== "classic" ? ' <span class="badge ' + esc(p.type) + '">' + esc(p.type) + "</span>" : "") +
         '</span><span class="pstatus ' + cls + '">' + esc(status) + "</span></span></a></li>");
-    }
+    });
     $("pastList").innerHTML = items.length ? items.join("") :
       '<li class="empty">No past Venns yet. Today\'s is the first one, so come back tomorrow.</li>';
     $("pastDialog").showModal();
