@@ -94,7 +94,7 @@ window.VENN_PUZZLES = [
     sourceUrl: "https://pi.math.cornell.edu/~mec/2003-2004/cryptography/subs/frequencies.html"
   },
   {
-    date: "2026-11-10",
+    date: "2026-11-09",
     type: "reverse",
     instruction: "What links the two cities? Fill in the number.",
     circles: [{}, {}],
@@ -116,7 +116,7 @@ window.VENN_PUZZLES = [
     ]
   },
   {
-    date: "2026-11-11",
+    date: "2026-11-10",
     type: "classic",
     instruction: "Name the country in each circle.",
     suggest: "countries",
@@ -124,7 +124,7 @@ window.VENN_PUZZLES = [
     regions: {
       A:  { slot: { hint: "3rd", answer: "Colombia", accept: ["colombia"] } },
       B:  { slot: { hint: "4th", answer: "Spain", accept: ["spain"] } },
-      AB: { text: "Spanish-speaking countries by total population" }
+      AB: { text: "Countries by total population of Spanish speakers" }
     },
     note: "Was curious about this one. Also figuring out that countries/geography is probably the way to go with these Venns rather than, say, the highest grossing films of Nicolas Cage. Or maybe not.",
     source: "World Population Review",

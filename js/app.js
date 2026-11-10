@@ -211,6 +211,36 @@
 
   var store = loadStore();
 
+  // A saved game belongs to the puzzle it was played on. If a puzzle is moved to
+  // another date, a game saved under the old date would land on the wrong puzzle,
+  // so move it to the date of the puzzle whose circles it fits.
+  function moveStrayGames() {
+    var moved = false;
+    ["games", "practice"].forEach(function (setName) {
+      var set = store[setName];
+      Object.keys(set).forEach(function (date) {
+        var g = set[date];
+        var here = PUZZLES.filter(function (p) { return p.date === date; })[0];
+        if (!g || !g.turns || !g.turns.length || !here) return;
+        var ids = function (p) { return Object.keys(p.regions).filter(function (k) { return p.regions[k].slot; }).sort().join(","); };
+        var used = {};
+        g.turns.forEach(function (t) { Object.keys(t).forEach(function (k) { used[k] = 1; }); });
+        var fits = function (p) { var want = ids(p).split(","); return Object.keys(used).every(function (k) { return want.indexOf(k) >= 0; }); };
+        if (fits(here)) return;
+        var home = PUZZLES.filter(function (p) { return p.date !== date && fits(p) && !set[p.date]; })
+          .sort(function (a, b) { return Math.abs(Date.parse(a.date) - Date.parse(date)) - Math.abs(Date.parse(b.date) - Date.parse(date)); })[0];
+        if (home) {
+          set[home.date] = g;
+          if (setName === "games" && store.stats.lastWinDate === date) store.stats.lastWinDate = home.date;
+        }
+        delete set[date];
+        moved = true;
+      });
+    });
+    if (moved) try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* ignore */ }
+  }
+  moveStrayGames();
+
   function save() {
     if (preview) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* ignore */ }
