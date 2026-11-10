@@ -70,3 +70,13 @@ Eleven awards shown on the stats screen as greyed-out rosettes until earned.
 Only the titles are shown, never how to earn them. The list and the rules are
 in `js/app.js` (`ROSETTES` and `checkAwards`). Clicking the "CORNER" drawing
 earns one and switches to the plain look (`?drawn=0`); a footer link switches back.
+
+## Profile and avatars
+
+The person button next to "?" opens a profile saved on the device: a name and
+one of six drawn avatars (`img/drawn/avatar1-6.png`). Only Venny Vennables is
+available at first; the rest show as blank cards with their names until earned.
+Rules are in `js/app.js` (`avatarUnlocked`). The name and avatar head the stats.
+
+Mega (three-circle) days use the drawn three-circle Venn (`venn3.png`, masks
+`mask3-*.png`).

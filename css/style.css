@@ -722,3 +722,59 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 @media (prefers-reduced-motion: reduce) {
   .reverse-flip > img, h1.reverse-flip:not(:has(img)) { animation: none !important; transform: scaleX(-1); }
 }
+
+/* Clickable V corner */
+.drawn .corner-tr { pointer-events: auto; cursor: pointer; }
+.corner.wiggle { animation: wiggle 0.5s ease; }
+@keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+
+/* Hand-drawn three-circle Venn */
+.board .venn-img.three { aspect-ratio: 1000 / 824; }
+.board:has(.venn-img.three) { margin: 30px 0 34px; }
+.venn-img.three .fill { opacity: 0.5; }
+.fill3-A { background: var(--c0); }
+.fill3-B { background: var(--c1); }
+.fill3-C { background: var(--c2); }
+.fill3-AB { background: color-mix(in oklab, color-mix(in oklab, var(--c0), var(--c1)) 85%, #000); }
+.fill3-AC { background: color-mix(in oklab, color-mix(in oklab, var(--c0), var(--c2)) 85%, #000); }
+.fill3-BC { background: color-mix(in oklab, color-mix(in oklab, var(--c1), var(--c2)) 85%, #000); }
+.fill3-ABC { background: color-mix(in oklab, color-mix(in oklab, color-mix(in oklab, var(--c0), var(--c1)), var(--c2) 33%) 72%, #000); }
+.fill3-A { -webkit-mask-image: url(../img/drawn/mask3-A.png); mask-image: url(../img/drawn/mask3-A.png); }
+.fill3-B { -webkit-mask-image: url(../img/drawn/mask3-B.png); mask-image: url(../img/drawn/mask3-B.png); }
+.fill3-C { -webkit-mask-image: url(../img/drawn/mask3-C.png); mask-image: url(../img/drawn/mask3-C.png); }
+.fill3-AB { -webkit-mask-image: url(../img/drawn/mask3-AB.png); mask-image: url(../img/drawn/mask3-AB.png); }
+.fill3-AC { -webkit-mask-image: url(../img/drawn/mask3-AC.png); mask-image: url(../img/drawn/mask3-AC.png); }
+.fill3-BC { -webkit-mask-image: url(../img/drawn/mask3-BC.png); mask-image: url(../img/drawn/mask3-BC.png); }
+.fill3-ABC { -webkit-mask-image: url(../img/drawn/mask3-ABC.png); mask-image: url(../img/drawn/mask3-ABC.png); }
+
+.circle-label3 { position: absolute; transform: translate(-50%, -50%); font-weight: 700; white-space: nowrap; font-size: clamp(13px, 3.8cqw, 18px); }
+
+/* Profile and avatars */
+#profileDialog .sub { color: var(--muted); font-size: 0.9rem; margin-top: -4px; }
+.profile-head { display: flex; align-items: center; gap: 14px; margin: 8px 0 4px; }
+.profile-head img { width: 84px; height: auto; flex: none; }
+.profile-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--muted); }
+.profile-name input {
+  width: 100%;
+  min-width: 0;
+  font: inherit; font-size: 1.1rem; color: var(--ink);
+  padding: 10px 12px; border: 2px solid var(--line); border-radius: var(--radius); background: var(--bg);
+}
+.profile-name input:focus { outline: none; border-color: var(--c1); }
+.drawn .profile-name input { border: none; border-radius: 0; background: url(../img/drawn/bar2.png) center / 100% 100% no-repeat; padding: 12px 16px; }
+.avatars { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 8px; }
+.avatar {
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 6px 2px;
+  border-radius: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 0.82rem; line-height: 1.2; text-align: center;
+}
+.avatar-pic { display: grid; place-items: center; width: 76px; height: 82px; }
+.avatar-pic img { max-width: 100%; max-height: 100%; }
+.avatar.locked { cursor: default; color: var(--muted); }
+.avatar.locked .avatar-pic { border: 2px dashed var(--line); border-radius: 10px; width: 70px; height: 74px; }
+.avatar.chosen { background: color-mix(in srgb, var(--c0) 22%, transparent); font-weight: 700; }
+.stats-avatar { width: 34px; height: auto; vertical-align: middle; margin-right: 8px; }

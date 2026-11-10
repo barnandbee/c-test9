@@ -14,13 +14,16 @@
 <body>
   <!-- hand-drawn corner decorations (drawn style only) -->
   <img class="corner corner-tl" src="img/drawn/corner-tl.png" alt="" aria-hidden="true">
-  <img class="corner corner-tr" src="img/drawn/corner-tr.png" alt="" aria-hidden="true">
+  <img class="corner corner-tr" id="cornerV" src="img/drawn/corner-tr.png" alt="">
   <img class="corner corner-bl" src="img/drawn/corner-bl.png" alt="" aria-hidden="true">
   <img class="corner corner-br" id="cornerCircle" src="img/drawn/corner-br.png" alt="">
   <header class="top">
     <div class="hgroup">
     <button class="icon-btn" id="helpBtn" aria-label="How to play">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.3-2.5 3.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.2" fill="currentColor"/></svg><img class="drawn-icon" src="img/drawn/icon-help.png" alt="">
+    </button>
+    <button class="icon-btn" id="profileBtn" aria-label="Your profile" title="Your profile">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z" fill="currentColor"/></svg><img class="drawn-icon" src="img/drawn/icon-profile.png" alt="">
     </button>
     </div>
     <div class="brand">
@@ -98,7 +101,7 @@
   <dialog id="statsDialog">
     <button class="close" data-close aria-label="Close">&times;</button>
     <div id="resultBlock"></div>
-    <h2>Your stats</h2>
+    <h2 id="statsTitle">Your stats</h2>
     <div class="stats" id="statsGrid"></div>
     <h3>Solved in…</h3>
     <div class="dist" id="distGraph"></div>
@@ -116,6 +119,21 @@
         <button type="button" id="importBtn">Paste a code</button>
       </div>
     </details>
+  </dialog>
+
+  <!-- Profile and avatars -->
+  <dialog id="profileDialog">
+    <button class="close" data-close aria-label="Close">&times;</button>
+    <h2>Your profile</h2>
+    <p class="sub">Saved on this device only.</p>
+    <div class="profile-head">
+      <img id="profileAvatar" src="img/drawn/avatar1.png" alt="">
+      <label class="profile-name">Your name
+        <input id="profileName" type="text" maxlength="24" placeholder="Type your name" autocomplete="nickname" spellcheck="false">
+      </label>
+    </div>
+    <h3>Choose your Venner <span class="rosette-count" id="avatarCount"></span></h3>
+    <ul class="avatars" id="avatarList"></ul>
   </dialog>
 
   <!-- Venns of the Past -->

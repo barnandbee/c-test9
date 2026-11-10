@@ -180,6 +180,9 @@
       practice: {}, // Venns of the Past played later, just for fun
       awards: {},   // rosettes: id -> time unlocked
       unseen: [],   // rosettes unlocked since the stats were last opened
+      profile: { name: "", avatar: 1 },
+      flags: {},    // one-off actions, e.g. vPressed
+      avatarsKnown: [1], // avatars the player has already been told about
       seenHelp: false
     };
   }
@@ -195,6 +198,9 @@
           games: s.games || {},
           practice: s.practice || {},
           awards: s.awards || {},
+          profile: Object.assign({ name: "", avatar: 1 }, s.profile || {}),
+          flags: s.flags || {},
+          avatarsKnown: s.avatarsKnown || [1],
           unseen: s.unseen || [],
           seenHelp: !!s.seenHelp
         };
@@ -240,6 +246,20 @@
   // ---------- layouts ----------
   var LAYOUTS = {
     // the hand-drawn pair of circles (img/drawn/venn.png, 1000 x 750)
+    // the hand-drawn three circles (img/drawn/venn3.png, 1000 x 824)
+    drawn3: {
+      w: 1000, h: 824,
+      labels: [{ x: 449, y: -34 }, { x: 150, y: 858 }, { x: 850, y: 858 }],
+      regions: {
+        A: { x: 449, y: 165, w: 300 },
+        B: { x: 216, y: 582, w: 260 },
+        C: { x: 764, y: 531, w: 280 },
+        AB: { x: 332, y: 370, w: 150 },
+        AC: { x: 606, y: 342, w: 160 },
+        BC: { x: 470, y: 610, w: 120 },
+        ABC: { x: 467, y: 463, w: 110 }
+      }
+    },
     drawn2: {
       w: 1000, h: 750,
       regions: {
@@ -344,10 +364,18 @@
   }
 
   function renderBoard() {
-    var useDrawn = DRAWN && nCircles === 2;
-    var L = LAYOUTS[useDrawn ? "drawn2" : nCircles];
-    if (useDrawn) {
-      var svg = '<div class="venn-img"><div class="fill fill-left"></div><div class="fill fill-lens"></div><div class="fill fill-right"></div><img src="img/drawn/venn.png" alt="Venn diagram"></div>';
+    var useDrawn = DRAWN;
+    var L = LAYOUTS[useDrawn ? "drawn" + nCircles : nCircles];
+    if (useDrawn && nCircles === 3) {
+      var svg = '<div class="venn-img three">' + ["A", "B", "C", "AB", "AC", "BC", "ABC"].map(function (k) {
+        return '<div class="fill fill3-' + k + '"></div>';
+      }).join("") + '<img src="img/drawn/venn3.png" alt="Venn diagram">' +
+        (puzzle.circles || []).map(function (c, i) {
+          var p = L.labels[i];
+          return c && c.label ? '<span class="circle-label3" style="left:' + (p.x / L.w * 100) + "%;top:" + (p.y / L.h * 100) + '%">' + esc(c.label) + "</span>" : "";
+        }).join("") + "</div>";
+    } else if (useDrawn) {
+      svg = '<div class="venn-img"><div class="fill fill-left"></div><div class="fill fill-lens"></div><div class="fill fill-right"></div><img src="img/drawn/venn.png" alt="Venn diagram"></div>';
     } else {
     svg = '<svg viewBox="0 0 ' + L.w + " " + L.h + '" role="img" aria-label="Venn diagram">';
     L.circles.forEach(function (c, i) {
@@ -610,6 +638,7 @@
     }).join("");
 
     renderRosettes();
+    renderStatsTitle();
     tickCountdown();
     var d = $("statsDialog");
     if (!d.open) d.showModal();
@@ -781,6 +810,98 @@
     });
     if (finished >= 1) unlock("played1", true);
     if (finished >= 20) unlock("done20", true);
+    checkAvatars();
+  }
+
+  // ---------- Profile and avatars ----------
+  var AVATARS = [
+    { id: 1, name: "Venny Vennables" },
+    { id: 2, name: "Venna Vennsen" },
+    { id: 3, name: "Venndog Barkvenn" },
+    { id: 4, name: "Beevenn Vennbee" },
+    { id: 5, name: "Ol\u2019 Vennessa \u2018V\u2019 McVenn" },
+    { id: 6, name: "Perpendicular Bird" }
+  ];
+
+  // finished games and best winning turn count, from daily games and Venns of the Past
+  function playSummary() {
+    var finished = 0, best = Infinity;
+    [store.games, store.practice].forEach(function (set) {
+      Object.keys(set).forEach(function (date) {
+        var g = set[date];
+        if (!g || !g.turns || g.status === "playing") return;
+        finished++;
+        if (g.status === "won") best = Math.min(best, g.turns.length);
+      });
+    });
+    return { finished: finished, best: best };
+  }
+
+  function rosetteTotal() {
+    return ROSETTES.filter(function (r) { return store.awards[r.id]; }).length;
+  }
+
+  // how each avatar is earned (never shown to the player)
+  function avatarUnlocked(id) {
+    var p = playSummary(), r = rosetteTotal();
+    switch (id) {
+      case 1: return true;
+      case 2: return r >= 3;
+      case 3: return p.best <= 3;
+      case 4: return r >= 10;
+      case 5: return p.best <= 5 && !!store.flags.vPressed;
+      case 6: return p.finished >= 50 && r >= 10;
+    }
+    return false;
+  }
+
+  function avatarName(id) {
+    for (var i = 0; i < AVATARS.length; i++) if (AVATARS[i].id === id) return AVATARS[i].name;
+    return "";
+  }
+
+  function checkAvatars() {
+    if (preview) return;
+    var fresh = AVATARS.filter(function (a) { return avatarUnlocked(a.id) && store.avatarsKnown.indexOf(a.id) < 0; });
+    if (!fresh.length) return;
+    fresh.forEach(function (a) { store.avatarsKnown.push(a.id); });
+    save();
+    var names = fresh.map(function (a) { return a.name; });
+    var msg = names.length === 1 ? "New avatar unlocked: " + names[0] :
+      "New avatars unlocked: " + names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    setTimeout(function () { if (!document.querySelector("dialog[open]")) toast(msg, 2800); }, 1800);
+  }
+
+  function currentAvatar() {
+    var id = store.profile.avatar || 1;
+    return avatarUnlocked(id) ? id : 1;
+  }
+
+  function openProfile() {
+    $("profileName").value = store.profile.name || "";
+    renderProfile();
+    $("profileDialog").showModal();
+  }
+
+  function renderProfile() {
+    var cur = currentAvatar(), got = 0;
+    $("profileAvatar").src = "img/drawn/avatar" + cur + ".png";
+    $("profileAvatar").alt = avatarName(cur);
+    $("avatarList").innerHTML = AVATARS.map(function (a) {
+      var open = avatarUnlocked(a.id);
+      if (open) got++;
+      return '<li><button type="button" class="avatar' + (open ? "" : " locked") + (a.id === cur ? " chosen" : "") + '"' +
+        (open ? ' data-avatar="' + a.id + '"' : " disabled") + ' aria-pressed="' + (a.id === cur) + '">' +
+        '<span class="avatar-pic">' + (open ? '<img src="img/drawn/avatar' + a.id + '.png" alt="">' : "") + "</span>" +
+        '<span class="avatar-name">' + esc(a.name) + "</span></button></li>";
+    }).join("");
+    $("avatarCount").textContent = "· " + got + " of " + AVATARS.length;
+  }
+
+  function renderStatsTitle() {
+    var name = (store.profile.name || "").trim();
+    $("statsTitle").innerHTML = '<img class="stats-avatar" src="img/drawn/avatar' + currentAvatar() + '.png" alt="">' +
+      (name ? esc(name) + "\u2019s stats" : "Your stats");
   }
 
   function rosetteSvg(colour) {
@@ -851,7 +972,8 @@
 
   // ---------- backup ----------
   function exportCode() {
-    var json = JSON.stringify({ v: 1, stats: store.stats, games: store.games, practice: store.practice, awards: store.awards });
+    var json = JSON.stringify({ v: 1, stats: store.stats, games: store.games, practice: store.practice, awards: store.awards,
+      profile: store.profile, flags: store.flags, avatarsKnown: store.avatarsKnown });
     var code = btoa(unescape(encodeURIComponent(json)));
     copy(code, "Code copied. Paste it on your other device.");
   }
@@ -867,6 +989,9 @@
       store.games = data.games || {};
       store.practice = data.practice || {};
       store.awards = data.awards || {};
+      store.profile = Object.assign({ name: "", avatar: 1 }, data.profile || {});
+      store.flags = data.flags || {};
+      store.avatarsKnown = data.avatarsKnown || [1];
       store.seenHelp = true;
       preview = false;
       save();
@@ -890,6 +1015,27 @@
   });
   $("helpBtn").onclick = function () { $("helpDialog").showModal(); };
   $("pastBtn").onclick = openPast;
+  $("profileBtn").onclick = openProfile;
+  $("profileName").addEventListener("input", function () {
+    store.profile.name = this.value.slice(0, 24);
+    save();
+  });
+  $("avatarList").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-avatar]");
+    if (!b) return;
+    store.profile.avatar = +b.getAttribute("data-avatar");
+    save();
+    renderProfile();
+  });
+  // the V drawing in the corner: part of how one avatar is earned
+  $("cornerV").onclick = function () {
+    var v = this;
+    v.classList.remove("wiggle"); void v.offsetWidth; v.classList.add("wiggle");
+    if (preview || store.flags.vPressed) return;
+    store.flags.vPressed = true;
+    save();
+    checkAvatars();
+  };
   // the "CORNER" drawing: unlocks a rosette and switches to the plain look
   $("cornerCircle").onclick = function () {
     if (!preview) unlock("corner", true);
