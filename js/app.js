@@ -290,6 +290,8 @@
   function renderMeta() {
     if (DRAWN) $("siteName").innerHTML = '<img src="img/drawn/title.png" alt="' + esc(NAME) + '" width="600" height="180">';
     else $("siteName").textContent = NAME;
+    // reverse days: the title flips to its mirror image and back
+    $("siteName").classList.toggle("reverse-flip", puzzle.type === "reverse");
     document.title = NAME;
     var type = puzzle.type || "classic";
     var num = index >= 0 ? "#" + (index + 1) : "Sample";

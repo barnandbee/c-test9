@@ -706,3 +706,19 @@ dialog h3 { font-size: 0.95rem; margin: 14px 0 8px; color: var(--muted); font-we
 .region.slot.template .answer { font-size: clamp(12px, 3.9cqw, 19px); font-weight: 700; line-height: 1.25; }
 .region.slot.template .gap { font-size: 1.25em; }
 .region.slot.template .gap .blank { min-width: 1.4em; }
+
+/* Reverse days: the title turns over to its mirror image, pauses, and turns back */
+.reverse-flip { perspective: 600px; }
+.reverse-flip > img, h1.reverse-flip:not(:has(img)) {
+  display: block;
+  animation: title-flip 7s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes title-flip {
+  0%, 30%   { transform: rotateY(0deg); }
+  40%, 80%  { transform: rotateY(180deg); }
+  90%, 100% { transform: rotateY(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reverse-flip > img, h1.reverse-flip:not(:has(img)) { animation: none !important; transform: scaleX(-1); }
+}
