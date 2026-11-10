@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- Source for img/og-image.png (the link preview). Render at 1200x630. -->
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;700&display=swap">
+<style>
+  html, body { margin: 0; }
+  body { width: 1200px; height: 630px; background: #faf6ef; color: #1e2640; font-family: "EB Garamond", Georgia, serif; position: relative; overflow: hidden; }
+  .corner { position: absolute; }
+  .tl { top: 22px; left: 26px; width: 92px; }
+  .tr { top: 16px; right: 30px; width: 74px; }
+  .bl { bottom: 20px; left: 26px; width: 110px; }
+  .br { bottom: 18px; right: 28px; width: 90px; }
+  .left { position: absolute; left: 100px; top: 130px; width: 440px; }
+  .title { width: 430px; display: block; }
+  .tag { font-size: 40px; font-weight: 500; line-height: 1.2; margin: 26px 0 0 8px; }
+  .tag b { font-weight: 700; }
+  .maker { position: relative; display: inline-flex; align-items: center; gap: 12px; font-size: 26px; color: #6d655d; margin: 34px 0 0 0; padding: 16px 34px; }
+  .maker img.logo { width: 46px; height: 46px; border-radius: 50%; }
+  .maker img.oval { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .venn { position: absolute; right: 95px; top: 120px; width: 500px; height: 375px; }
+  .venn > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .fill { opacity: .5; -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; }
+  .l { background: #38618C; -webkit-mask-image: url(../img/drawn/mask-left.png); }
+  .r { background: #FA7921; -webkit-mask-image: url(../img/drawn/mask-right.png); }
+  .m { background: color-mix(in oklab, color-mix(in oklab, #38618C, #FA7921) 80%, #000); -webkit-mask-image: url(../img/drawn/mask-lens.png); }
+  .q { position: absolute; inset: auto; width: auto; height: auto; transform: translate(-50%, -50%); font-size: 64px; font-weight: 700; }
+</style></head>
+<body>
+  <img class="corner tl" src="../img/drawn/corner-tl.png">
+  <img class="corner tr" src="../img/drawn/corner-tr.png">
+  <img class="corner bl" src="../img/drawn/corner-bl.png">
+  <img class="corner br" src="../img/drawn/corner-br.png">
+  <div class="left">
+    <img class="title" src="../img/drawn/title.png">
+    <div class="tag">A daily Venn puzzle.<br><b>What goes in each circle?</b></div>
+    <div class="maker"><img class="logo" src="../img/bass-moultapps.jpg"> Made by Bass Moultapps<img class="oval" src="../img/drawn/oval.png"></div>
+  </div>
+  <div class="venn">
+    <div class="fill l"></div><div class="fill m"></div><div class="fill r"></div>
+    <img src="../img/drawn/venn.png">
+    <span class="q" style="left:17.6%;top:50%">?</span>
+    <span class="q" style="left:50%;top:51%">?</span>
+    <span class="q" style="left:82.6%;top:50%">?</span>
+  </div>
+</body></html>
